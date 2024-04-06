@@ -1,0 +1,11 @@
+{
+  "app": {
+    "listenAddress": "127.0.0.1:8443",
+    "trustedProxies": null,
+    "mode": "debug"
+  },
+  "ssl": {
+    "cert": null,
+    "key": null
+  }
+}
