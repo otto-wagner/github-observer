@@ -1,0 +1,45 @@
+---
+name: default_pullrequest
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      GLOBAL_GITHUB_TOKEN: ${{ secrets.GLOBAL_GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: CI
+        run: |
+          if [ -f "Makefile" ]; then
+            make ci
+          fi
+
+  dependabot:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    needs:
+      - ci
+    env:
+      PR_URL: ${{github.event.pull_request.html_url}}
+    steps:
+      - name: Dependabot metadata
+        uses: dependabot/fetch-metadata@v1
+      - name: Approve a PR
+        run: gh pr review --approve "$PR_URL"
+      - name: Enable auto-merge for Dependabot PRs
+        if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
+        run: gh pr merge --auto --merge "$PR_URL"
