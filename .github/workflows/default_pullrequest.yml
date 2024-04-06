@@ -13,11 +13,9 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     env:
-      GLOBAL_GITHUB_TOKEN: ${{ secrets.GLOBAL_GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -29,14 +27,14 @@ jobs:
           fi
 
   dependabot:
+    needs: ci
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
-    needs:
-      - ci
     env:
-      PR_URL: ${{github.event.pull_request.html_url}}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Dependabot metadata
+        id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1
       - name: Approve a PR
         run: gh pr review --approve "$PR_URL"
