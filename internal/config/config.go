@@ -2,6 +2,8 @@ package config
 
 import (
 	"errors"
+	"go.uber.org/zap"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -21,7 +23,7 @@ type SslConfig struct {
 
 type Config struct {
 	App AppConfig `json:"app"`
-	Ssl SslConfig `json:"ssl"`
+	//Ssl SslConfig `json:"ssl"`
 }
 
 func InitConfig(cfgFile string) (Config, error) {
@@ -32,7 +34,11 @@ func InitConfig(cfgFile string) (Config, error) {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		// Search config in default location conf/common.json
-		viper.AddConfigPath("conf/")
+		configPath, err := filepath.Abs("../conf")
+		if err != nil {
+			zap.S().Fatalw("failed to load config - filepath", "error", err)
+		}
+		viper.AddConfigPath(configPath)
 		viper.SetConfigName("common")
 		viper.SetConfigType("json")
 	}

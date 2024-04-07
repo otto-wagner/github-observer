@@ -11,3 +11,14 @@ test/unit:
 
 test/integration:
 	go test ./... -tags=integration
+
+mock: mock/setup mock/internal mock/pkg
+
+mock/setup:
+	go install github.com/vektra/mockery/v2@v2.40.3
+
+mock/internal:
+	cd ./internal && mockery --all
+
+mock/pkg:
+	cd ./pkg && mockery --all

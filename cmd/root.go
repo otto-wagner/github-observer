@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"github-listener/internal/config"
+	"github-listener/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"os"
 )
 
@@ -29,14 +32,9 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig, initEngine)
+	cobra.OnInitialize(initConfig, initLogging, initEngine)
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(docCmd)
-}
-
-func initEngine() {
-	gin.SetMode(configuration.App.Mode)
-	engine = gin.New()
 }
 
 func initConfig() {
@@ -45,4 +43,21 @@ func initConfig() {
 	if err != nil {
 		zap.S().Fatalw("failed to init config", "error", err)
 	}
+}
+
+func initLogging() {
+	mode := viper.GetString(configuration.App.Mode)
+	switch mode {
+	case "debug":
+		zap.ReplaceGlobals(pkg.NewZapLogger(zapcore.DebugLevel))
+	case "production":
+		zap.ReplaceGlobals(pkg.NewZapLogger(zapcore.WarnLevel))
+	default:
+		zap.ReplaceGlobals(pkg.NewZapLogger(zapcore.InfoLevel))
+	}
+}
+
+func initEngine() {
+	gin.SetMode(configuration.App.Mode)
+	engine = gin.New()
 }
