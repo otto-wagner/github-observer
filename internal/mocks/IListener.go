@@ -13,8 +13,13 @@ type IListener struct {
 	mock.Mock
 }
 
-// Listen provides a mock function with given fields: _a0
-func (_m *IListener) Listen(_a0 *gin.Context) {
+// Action provides a mock function with given fields: _a0
+func (_m *IListener) Action(_a0 *gin.Context) {
+	_m.Called(_a0)
+}
+
+// PullRequest provides a mock function with given fields: _a0
+func (_m *IListener) PullRequest(_a0 *gin.Context) {
 	_m.Called(_a0)
 }
 

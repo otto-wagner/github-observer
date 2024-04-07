@@ -21,8 +21,8 @@ func init() {
 	// config
 	serverCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is conf/common.json)")
 	// app
-	serverCmd.PersistentFlags().StringP("app.listenAddress", "l", "0.0.0.0:8443", "Listen address of the HTTP API endpoint")
-	//serverCmd.PersistentFlags().StringSliceP("app.trustedProxies", "t", []string{""}, "Listen address of the HTTP API endpoint")
+	serverCmd.PersistentFlags().StringP("app.listenAddress", "l", "0.0.0.0:8443", "Action address of the HTTP API endpoint")
+	//serverCmd.PersistentFlags().StringSliceP("app.trustedProxies", "t", []string{""}, "Action address of the HTTP API endpoint")
 	serverCmd.PersistentFlags().StringP("app.mode", "g", "release", "Gin mode")
 	// ssl
 	serverCmd.PersistentFlags().StringP("ssl.cert", "s", "conf/ssl.cert", "Path to SSL certificate")

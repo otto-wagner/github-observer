@@ -19,7 +19,9 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener) {
 		c.JSON(http.StatusOK, gin.H{"health": "ok"})
 	})
 
-	e.POST("/listener", l.Listen)
+	el := e.Group("/listen")
+	el.POST("/actions", l.Action)
+	el.POST("/pullrequests", l.PullRequest)
 }
 
 func addCorsMiddleware(engine *gin.Engine) {
