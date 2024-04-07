@@ -27,13 +27,13 @@ func (l *listener) Action(c *gin.Context) {
 	}
 
 	zap.S().Infow("Workflow received",
-		"repo", runEvent.Repo.GetName(),
-		"repo_html_url", runEvent.Repo.GetHTMLURL(),
-		"name", runEvent.CheckRun.GetName(),
-		"html_url", runEvent.CheckRun.GetHTMLURL(),
+		"repo", runEvent.GetRepo().GetName(),
+		"repo_html_url", runEvent.GetRepo().GetHTMLURL(),
+		"name", runEvent.GetCheckRun().GetName(),
+		"html_url", runEvent.GetCheckRun().GetHTMLURL(),
 		"action", runEvent.GetAction(),
-		"status", runEvent.CheckRun.GetStatus(),
-		"conclusion", runEvent.CheckRun.GetConclusion(),
+		"status", runEvent.GetCheckRun().GetStatus(),
+		"conclusion", runEvent.GetCheckRun().GetConclusion(),
 	)
 	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
 }
@@ -46,13 +46,13 @@ func (l *listener) PullRequest(c *gin.Context) {
 	}
 
 	zap.S().Infow("Workflow received",
-		"repo", prEvent.Repo.GetName(),
-		"repo_html_url", prEvent.Repo.GetHTMLURL(),
-		"title", prEvent.PullRequest.GetTitle(),
-		"user", prEvent.PullRequest.GetUser().GetLogin(),
-		"html_url", prEvent.PullRequest.GetHTMLURL(),
+		"repo", prEvent.GetRepo().GetName(),
+		"repo_html_url", prEvent.GetRepo().GetHTMLURL(),
+		"title", prEvent.GetPullRequest().GetTitle(),
+		"user", prEvent.GetPullRequest().GetUser().GetLogin(),
+		"html_url", prEvent.GetPullRequest().GetHTMLURL(),
 		"action", prEvent.GetAction(),
-		"status", prEvent.PullRequest.GetState(),
+		"status", prEvent.GetPullRequest().GetState(),
 	)
 	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
 }
