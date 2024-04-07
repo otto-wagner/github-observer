@@ -4,6 +4,7 @@ import (
 	"github-listener/internal/listener"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -15,6 +16,7 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener) {
 
 	addCorsMiddleware(e)
 
+	zap.S().Info("Initializing routes")
 	e.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"health": "ok"})
 	})
