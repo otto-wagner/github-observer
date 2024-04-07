@@ -23,6 +23,11 @@ func (_m *IListener) PullRequest(_a0 *gin.Context) {
 	_m.Called(_a0)
 }
 
+// PullRequestReview provides a mock function with given fields: _a0
+func (_m *IListener) PullRequestReview(_a0 *gin.Context) {
+	_m.Called(_a0)
+}
+
 // NewIListener creates a new instance of IListener. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewIListener(t interface {

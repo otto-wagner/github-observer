@@ -40,7 +40,7 @@ func TestRouterIntegration(t *testing.T) {
 		})
 
 		// when
-		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/actions", string(event))
+		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/action", string(event))
 
 		// then
 		assert.Equal(t, http.StatusOK, response.Code)
@@ -59,7 +59,29 @@ func TestRouterIntegration(t *testing.T) {
 		})
 
 		// when
-		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/pullrequests", string(event))
+		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/pullrequest", string(event))
+
+		// then
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Equal(t, "{\"message\":\"Workflow received\"}", response.Body.String())
+	})
+
+	t.Run("Should listen pull request review", func(t *testing.T) {
+		// given
+		event, _ := json.Marshal(github.PullRequestReviewEvent{
+			PullRequest: &github.PullRequest{
+				Title: github.String("chore: test pullrequest_listener"),
+			},
+			Repo: &github.Repository{
+				Name: github.String("github-listener"),
+			},
+			Review: &github.PullRequestReview{
+				Body: github.String("LGTM"),
+			},
+		})
+
+		// when
+		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/pullrequest/review", string(event))
 
 		// then
 		assert.Equal(t, http.StatusOK, response.Code)

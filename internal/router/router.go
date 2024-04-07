@@ -20,8 +20,9 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener) {
 	})
 
 	el := e.Group("/listen")
-	el.POST("/actions", l.Action)
-	el.POST("/pullrequests", l.PullRequest)
+	el.POST("/action", l.Action)
+	el.POST("/pullrequest", l.PullRequest)
+	el.POST("/pullrequest/review", l.PullRequestReview)
 }
 
 func addCorsMiddleware(engine *gin.Engine) {
