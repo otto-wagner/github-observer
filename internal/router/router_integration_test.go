@@ -4,6 +4,7 @@ package router
 
 import (
 	"encoding/json"
+	"github-listener/internal/Executor"
 	"github-listener/internal/Executor/Logging"
 	"github-listener/internal/listener"
 	"github-listener/mocks"
@@ -16,7 +17,7 @@ import (
 
 func TestRouterIntegration(t *testing.T) {
 	executor := Logging.NewExecutor()
-	l := listener.NewListener(executor)
+	l := listener.NewListener([]Executor.IExecutor{executor})
 	engine := gin.New()
 	InitializeRoutes(engine, l)
 

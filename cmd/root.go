@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"github-listener/internal/Executor"
-	loggingExecutor "github-listener/internal/Executor/Logging"
+	"github-listener/internal/Executor/Logging"
+	"github-listener/internal/Executor/Prometheus"
 	"github-listener/internal/config"
 	"github-listener/pkg"
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,7 @@ var (
 	cfgFile       string
 	configuration config.Config
 	engine        *gin.Engine
-	executor      Executor.IExecutor
+	executors     []Executor.IExecutor
 	rootCmd       = &cobra.Command{
 		Use:   "github-listener",
 		Short: "github-listener is a simple GitHub webhook listener",
@@ -61,12 +62,14 @@ func initLogging() {
 }
 
 func initExecutor() {
-	mode := viper.GetString(configuration.App.Executor)
-	switch mode {
-	case "logging":
-		executor = loggingExecutor.NewExecutor()
-	default:
-		executor = loggingExecutor.NewExecutor()
+	appExecutors := viper.GetStringSlice("app.executors")
+	for _, e := range appExecutors {
+		switch e {
+		case "logging":
+			executors = append(executors, Logging.NewExecutor())
+		case "prometheus":
+			executors = append(executors, Prometheus.NewExecutor())
+		}
 	}
 }
 

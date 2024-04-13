@@ -13,7 +13,11 @@ func NewExecutor() Executor.IExecutor {
 	return &executor{}
 }
 
-func (e executor) CheckRunEvent(runEvent github.CheckRunEvent) {
+func (e executor) Name() string {
+	return "Logging"
+}
+
+func (e executor) CheckRunEvent(runEvent github.CheckRunEvent) (err error) {
 	zap.S().Infow("Workflow received",
 		"repo", runEvent.GetRepo().GetName(),
 		"repo_html_url", runEvent.GetRepo().GetHTMLURL(),
@@ -23,9 +27,10 @@ func (e executor) CheckRunEvent(runEvent github.CheckRunEvent) {
 		"status", runEvent.GetCheckRun().GetStatus(),
 		"conclusion", runEvent.GetCheckRun().GetConclusion(),
 	)
+	return
 }
 
-func (e executor) PullRequestEvent(event github.PullRequestEvent) {
+func (e executor) PullRequestEvent(event github.PullRequestEvent) (err error) {
 	zap.S().Infow("Workflow received",
 		"repo", event.GetRepo().GetName(),
 		"repo_html_url", event.GetRepo().GetHTMLURL(),
@@ -35,9 +40,10 @@ func (e executor) PullRequestEvent(event github.PullRequestEvent) {
 		"action", event.GetAction(),
 		"status", event.GetPullRequest().GetState(),
 	)
+	return
 }
 
-func (e executor) PullRequestReviewEvent(event github.PullRequestReviewEvent) {
+func (e executor) PullRequestReviewEvent(event github.PullRequestReviewEvent) (err error) {
 	zap.S().Infow("Workflow received",
 		"repo", event.GetRepo().GetName(),
 		"repo_html_url", event.GetRepo().GetHTMLURL(),
@@ -50,4 +56,5 @@ func (e executor) PullRequestReviewEvent(event github.PullRequestReviewEvent) {
 		"state", event.GetReview().GetState(),
 		"reviewer", event.GetReview().GetUser().GetLogin(),
 	)
+	return
 }

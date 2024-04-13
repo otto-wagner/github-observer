@@ -13,18 +13,75 @@ type IExecutor struct {
 }
 
 // CheckRunEvent provides a mock function with given fields: _a0
-func (_m *IExecutor) CheckRunEvent(_a0 github.CheckRunEvent) {
-	_m.Called(_a0)
+func (_m *IExecutor) CheckRunEvent(_a0 github.CheckRunEvent) error {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckRunEvent")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(github.CheckRunEvent) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Name provides a mock function with given fields:
+func (_m *IExecutor) Name() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Name")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
 }
 
 // PullRequestEvent provides a mock function with given fields: _a0
-func (_m *IExecutor) PullRequestEvent(_a0 github.PullRequestEvent) {
-	_m.Called(_a0)
+func (_m *IExecutor) PullRequestEvent(_a0 github.PullRequestEvent) error {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PullRequestEvent")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(github.PullRequestEvent) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // PullRequestReviewEvent provides a mock function with given fields: _a0
-func (_m *IExecutor) PullRequestReviewEvent(_a0 github.PullRequestReviewEvent) {
-	_m.Called(_a0)
+func (_m *IExecutor) PullRequestReviewEvent(_a0 github.PullRequestReviewEvent) error {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PullRequestReviewEvent")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(github.PullRequestReviewEvent) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // NewIExecutor creates a new instance of IExecutor. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

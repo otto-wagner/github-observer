@@ -11,6 +11,15 @@ import (
 
 func TestNewExecutor(t *testing.T) {
 
+	t.Run("Should return name", func(t *testing.T) {
+		// given
+		// when
+		name := NewExecutor().Name()
+
+		// then
+		assert.Equal(t, "Logging", name)
+	})
+
 	t.Run("Should log listener action", func(t *testing.T) {
 		// given
 		logs := logger.MockedLogger()
@@ -30,7 +39,7 @@ func TestNewExecutor(t *testing.T) {
 		}
 
 		// when
-		NewExecutor().CheckRunEvent(event)
+		_ = NewExecutor().CheckRunEvent(event)
 
 		// then
 		assert.Contains(t, logs.All()[0].Message, "Workflow received")
@@ -68,7 +77,7 @@ func TestNewExecutor(t *testing.T) {
 		}
 
 		// when
-		NewExecutor().PullRequestEvent(event)
+		_ = NewExecutor().PullRequestEvent(event)
 
 		// then
 		assert.Contains(t, logs.All()[0].Message, "Workflow received")
@@ -111,7 +120,7 @@ func TestNewExecutor(t *testing.T) {
 		}
 
 		// when
-		NewExecutor().PullRequestReviewEvent(event)
+		_ = NewExecutor().PullRequestReviewEvent(event)
 
 		// then
 		assert.Contains(t, logs.All()[0].Message, "Workflow received")
