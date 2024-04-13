@@ -1,6 +1,7 @@
 package listener
 
 import (
+	"github-listener/internal/Executor"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
 	"go.uber.org/zap"
@@ -14,10 +15,11 @@ type IListener interface {
 }
 
 type listener struct {
+	executor Executor.IExecutor
 }
 
-func NewListener() IListener {
-	return &listener{}
+func NewListener(executor Executor.IExecutor) IListener {
+	return &listener{executor}
 }
 
 func (l *listener) Action(c *gin.Context) {
@@ -27,55 +29,28 @@ func (l *listener) Action(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 	}
 
-	zap.S().Infow("Workflow received",
-		"repo", runEvent.GetRepo().GetName(),
-		"repo_html_url", runEvent.GetRepo().GetHTMLURL(),
-		"name", runEvent.GetCheckRun().GetName(),
-		"html_url", runEvent.GetCheckRun().GetHTMLURL(),
-		"action", runEvent.GetAction(),
-		"status", runEvent.GetCheckRun().GetStatus(),
-		"conclusion", runEvent.GetCheckRun().GetConclusion(),
-	)
+	l.executor.CheckRunEvent(runEvent)
 	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
 }
 
 func (l *listener) PullRequest(c *gin.Context) {
-	var prEvent github.PullRequestEvent
-	if err := c.BindJSON(&prEvent); err != nil {
+	var event github.PullRequestEvent
+	if err := c.BindJSON(&event); err != nil {
 		zap.S().Errorw("Failed to bind PullRequestEvent", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 	}
 
-	zap.S().Infow("Workflow received",
-		"repo", prEvent.GetRepo().GetName(),
-		"repo_html_url", prEvent.GetRepo().GetHTMLURL(),
-		"title", prEvent.GetPullRequest().GetTitle(),
-		"user", prEvent.GetPullRequest().GetUser().GetLogin(),
-		"html_url", prEvent.GetPullRequest().GetHTMLURL(),
-		"action", prEvent.GetAction(),
-		"status", prEvent.GetPullRequest().GetState(),
-	)
+	l.executor.PullRequestEvent(event)
 	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
 }
 
 func (l *listener) PullRequestReview(c *gin.Context) {
-	var prEvent github.PullRequestReviewEvent
-	if err := c.BindJSON(&prEvent); err != nil {
+	var event github.PullRequestReviewEvent
+	if err := c.BindJSON(&event); err != nil {
 		zap.S().Errorw("Failed to bind PullRequestReviewEvent", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 	}
 
-	zap.S().Infow("Workflow received",
-		"repo", prEvent.GetRepo().GetName(),
-		"repo_html_url", prEvent.GetRepo().GetHTMLURL(),
-		"title", prEvent.GetPullRequest().GetTitle(),
-		"user", prEvent.GetPullRequest().GetUser().GetLogin(),
-		"html_url", prEvent.GetPullRequest().GetHTMLURL(),
-		"action", prEvent.GetAction(),
-		"status", prEvent.GetPullRequest().GetState(),
-		"review", prEvent.GetReview().GetBody(),
-		"state", prEvent.GetReview().GetState(),
-		"reviewer", prEvent.GetReview().GetUser().GetLogin(),
-	)
+	l.executor.PullRequestReviewEvent(event)
 	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
 }

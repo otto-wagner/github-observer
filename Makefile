@@ -22,3 +22,12 @@ mock/internal:
 
 mock/pkg:
 	cd ./pkg && mockery --all
+
+build:
+	go build -o bin/github-listener .
+
+build/run:
+	./bin/github-listener server
+
+run:
+	go run . server

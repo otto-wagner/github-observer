@@ -50,7 +50,7 @@ func startServer(_ *cobra.Command, _ []string) {
 		zap.S().Fatal("configuration validation failed")
 	}
 
-	router.InitializeRoutes(engine, listener.NewListener())
+	router.InitializeRoutes(engine, listener.NewListener(executor))
 
 	err = engine.Run(configuration.App.ListenAddress)
 	if err != nil {

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"github-listener/internal/Executor"
+	loggingExecutor "github-listener/internal/Executor/Logging"
 	"github-listener/internal/config"
 	"github-listener/pkg"
 	"github.com/gin-gonic/gin"
@@ -15,6 +17,7 @@ var (
 	cfgFile       string
 	configuration config.Config
 	engine        *gin.Engine
+	executor      Executor.IExecutor
 	rootCmd       = &cobra.Command{
 		Use:   "github-listener",
 		Short: "github-listener is a simple GitHub webhook listener",
@@ -32,7 +35,7 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig, initLogging, initEngine)
+	cobra.OnInitialize(initConfig, initLogging, initExecutor, initEngine)
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(docCmd)
 }
@@ -54,6 +57,16 @@ func initLogging() {
 		zap.ReplaceGlobals(pkg.NewZapLogger(zapcore.WarnLevel))
 	default:
 		zap.ReplaceGlobals(pkg.NewZapLogger(zapcore.InfoLevel))
+	}
+}
+
+func initExecutor() {
+	mode := viper.GetString(configuration.App.Executor)
+	switch mode {
+	case "logging":
+		executor = loggingExecutor.NewExecutor()
+	default:
+		executor = loggingExecutor.NewExecutor()
 	}
 }
 
