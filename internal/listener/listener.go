@@ -1,7 +1,7 @@
 package listener
 
 import (
-	"github-listener/internal/Executor"
+	"github-observer/internal/Executor"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
 	"go.uber.org/zap"

@@ -1,7 +1,7 @@
 package Prometheus
 
 import (
-	"github-listener/internal/Executor"
+	"github-observer/internal/Executor"
 	"github.com/google/go-github/v61/github"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -9,12 +9,10 @@ import (
 type executor struct {
 	lastRequestReceivedTimeAction *prometheus.GaugeVec
 	countAction                   *prometheus.CounterVec
-
-	lastRequestReceivedTimePR *prometheus.GaugeVec
-	countPR                   *prometheus.CounterVec
-
-	lastRequestReceivedTimePRR *prometheus.GaugeVec
-	countPRR                   *prometheus.CounterVec
+	lastRequestReceivedTimePR     *prometheus.GaugeVec
+	countPR                       *prometheus.CounterVec
+	lastRequestReceivedTimePRR    *prometheus.GaugeVec
+	countPRR                      *prometheus.CounterVec
 }
 
 func NewExecutor() Executor.IExecutor {
@@ -45,40 +43,43 @@ func (e executor) CheckRunEvent(event github.CheckRunEvent) (err error) {
 		"action":     event.GetAction(),
 		"status":     event.GetCheckRun().GetStatus(),
 		"conclusion": event.GetCheckRun().GetConclusion(),
+		"state":      "",
 	}).Inc()
 	return
 }
 
 func (e executor) PullRequestEvent(event github.PullRequestEvent) (err error) {
-	e.lastRequestReceivedTimeAction.With(prometheus.Labels{
+	e.lastRequestReceivedTimePR.With(prometheus.Labels{
 		"repo":       event.GetRepo().GetName(),
 		"action":     event.GetAction(),
 		"status":     event.GetPullRequest().GetState(),
 		"conclusion": "",
 		"state":      "",
 	}).SetToCurrentTime()
-	e.countAction.With(prometheus.Labels{
+	e.countPR.With(prometheus.Labels{
 		"repo":       event.GetRepo().GetName(),
 		"action":     event.GetAction(),
 		"status":     event.GetPullRequest().GetState(),
 		"conclusion": "",
+		"state":      "",
 	}).Inc()
 	return
 }
 
 func (e executor) PullRequestReviewEvent(event github.PullRequestReviewEvent) (err error) {
-	e.lastRequestReceivedTimeAction.With(prometheus.Labels{
+	e.lastRequestReceivedTimePRR.With(prometheus.Labels{
 		"repo":       event.GetRepo().GetName(),
 		"action":     event.GetAction(),
 		"status":     event.GetPullRequest().GetState(),
 		"conclusion": "",
 		"state":      event.GetReview().GetState(),
 	}).SetToCurrentTime()
-	e.countAction.With(prometheus.Labels{
+	e.countPRR.With(prometheus.Labels{
 		"repo":       event.GetRepo().GetName(),
 		"action":     event.GetAction(),
 		"status":     event.GetPullRequest().GetState(),
 		"conclusion": "",
+		"state":      event.GetReview().GetState(),
 	}).Inc()
 	return
 }
@@ -97,7 +98,7 @@ func registerCount(name string) (counter *prometheus.CounterVec) {
 		prometheus.CounterOpts{
 			Name: "count_request_processed_" + name,
 			Help: "Number of requests processed"},
-		[]string{"repo", "action", "status", "conclusion"})
+		[]string{"repo", "action", "status", "conclusion", "state"})
 	prometheus.MustRegister(counter)
 	return
 }

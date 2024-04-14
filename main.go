@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github-listener/cmd"
+	"github-observer/cmd"
 )
 
 // @title           Github listener

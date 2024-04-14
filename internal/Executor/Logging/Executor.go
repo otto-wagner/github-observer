@@ -1,7 +1,7 @@
 package Logging
 
 import (
-	"github-listener/internal/Executor"
+	"github-observer/internal/Executor"
 	"github.com/google/go-github/v61/github"
 	"go.uber.org/zap"
 )

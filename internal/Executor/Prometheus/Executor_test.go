@@ -10,53 +10,47 @@ import (
 )
 
 func TestNewExecutor(t *testing.T) {
+	e := NewExecutor().(*executor)
 
 	t.Run("Should return name", func(t *testing.T) {
 		// given
 		// when
-		name := NewExecutor().Name()
-
-		// then
-		assert.Equal(t, "Prometheus", name)
+		assert.Equal(t, "Prometheus", e.Name())
 	})
 
 	t.Run("Should log listener action", func(t *testing.T) {
 		// given
 		event := github.CheckRunEvent{
 			Repo: &github.Repository{
-				Name:    github.String("github-listener"),
-				HTMLURL: github.String("https://github.com/otto-wagner/github-listener"),
+				Name: github.String("github-observer"),
 			},
 			Action: github.String("completed"),
 			CheckRun: &github.CheckRun{
-				ID:         github.Int64(1),
-				Name:       github.String("Analyze (go)"),
-				HTMLURL:    github.String("https://github.com/otto-wagner/github-listener/actions/runs/8589035842/job/23534635896"),
 				Status:     github.String("completed"),
 				Conclusion: github.String("success"),
 			},
 		}
 
 		// when
-		executor := NewExecutor().(*executor)
-		err := executor.CheckRunEvent(event)
+		err := e.CheckRunEvent(event)
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, 1, testutil.CollectAndCount(executor.lastRequestReceivedTimeAction))
-		assert.Greater(t, testutil.ToFloat64(executor.lastRequestReceivedTimeAction.WithLabelValues(
+		assert.Equal(t, 1, testutil.CollectAndCount(e.lastRequestReceivedTimeAction))
+		assert.Greater(t, testutil.ToFloat64(e.lastRequestReceivedTimeAction.WithLabelValues(
 			event.GetRepo().GetName(),
 			event.GetAction(),
 			event.GetCheckRun().GetStatus(),
 			event.GetCheckRun().GetConclusion(),
 			"",
 		)), float64(0))
-		assert.Equal(t, 1, testutil.CollectAndCount(executor.countAction))
-		assert.Greater(t, testutil.ToFloat64(executor.countAction.WithLabelValues(
+		assert.Equal(t, 1, testutil.CollectAndCount(e.countAction))
+		assert.Greater(t, testutil.ToFloat64(e.countAction.WithLabelValues(
 			event.GetRepo().GetName(),
 			event.GetAction(),
 			event.GetCheckRun().GetStatus(),
 			event.GetCheckRun().GetConclusion(),
+			"",
 		)), float64(0))
 	})
 
@@ -64,54 +58,72 @@ func TestNewExecutor(t *testing.T) {
 		// given
 		event := github.PullRequestEvent{
 			Repo: &github.Repository{
-				Name:    github.String("github-listener"),
-				HTMLURL: github.String("https://github.com/otto-wagner/github-listener"),
+				Name: github.String("github-observer"),
 			},
 			Action: github.String("opened"),
 			PullRequest: &github.PullRequest{
-				Title:   github.String("chore: test pullrequest_listener"),
-				User:    &github.User{Login: github.String("otto-wagner")},
-				HTMLURL: github.String("https://github.com/otto-wagner/github-listener/pull/2"),
-				State:   github.String("open"),
+				State: github.String("open"),
 			},
 		}
 
 		// when
-		executor := NewExecutor().(*executor)
-		err := executor.PullRequestEvent(event)
+		err := e.PullRequestEvent(event)
 
 		// then
 		assert.NoError(t, err)
-		// todo: more!
+		assert.Equal(t, 1, testutil.CollectAndCount(e.lastRequestReceivedTimePR))
+		assert.Greater(t, testutil.ToFloat64(e.lastRequestReceivedTimePR.WithLabelValues(
+			event.GetRepo().GetName(),
+			event.GetAction(),
+			event.GetPullRequest().GetState(),
+			"",
+			"",
+		)), float64(0))
+		assert.Equal(t, 1, testutil.CollectAndCount(e.countPR))
+		assert.Greater(t, testutil.ToFloat64(e.countPR.WithLabelValues(
+			event.GetRepo().GetName(),
+			event.GetAction(),
+			event.GetPullRequest().GetState(),
+			"",
+			"",
+		)), float64(0))
 	})
 
 	t.Run("Should log listener pull request review", func(t *testing.T) {
 		// given
 		event := github.PullRequestReviewEvent{
 			Repo: &github.Repository{
-				Name:    github.String("github-listener"),
-				HTMLURL: github.String("https://github.com/otto-wagner/github-listener"),
+				Name: github.String("github-observer"),
 			},
 			Action: github.String("submitted"),
 			PullRequest: &github.PullRequest{
-				Title:   github.String("chore: test pullrequest_listener"),
-				User:    &github.User{Login: github.String("otto-wagner")},
-				HTMLURL: github.String("https://github.com/otto-wagner/github-listener/pull/2"),
-				State:   github.String("open"),
+				State: github.String("open"),
 			},
 			Review: &github.PullRequestReview{
-				Body:  github.String("LGTM"),
 				State: github.String("commented"),
-				User:  &github.User{Login: github.String("otto-wagner")},
 			},
 		}
 
 		// when
-		executor := NewExecutor().(*executor)
-		err := executor.PullRequestReviewEvent(event)
+		err := e.PullRequestReviewEvent(event)
 
 		// then
 		assert.NoError(t, err)
-		// todo: more!
+		assert.Equal(t, 1, testutil.CollectAndCount(e.lastRequestReceivedTimePRR))
+		assert.Greater(t, testutil.ToFloat64(e.lastRequestReceivedTimePRR.WithLabelValues(
+			event.GetRepo().GetName(),
+			event.GetAction(),
+			event.GetPullRequest().GetState(),
+			"",
+			event.GetReview().GetState(),
+		)), float64(0))
+		assert.Equal(t, 1, testutil.CollectAndCount(e.countPRR))
+		assert.Greater(t, testutil.ToFloat64(e.countPRR.WithLabelValues(
+			event.GetRepo().GetName(),
+			event.GetAction(),
+			event.GetPullRequest().GetState(),
+			"",
+			event.GetReview().GetState(),
+		)), float64(0))
 	})
 }

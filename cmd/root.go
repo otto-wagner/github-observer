@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"github-listener/internal/Executor"
-	"github-listener/internal/Executor/Logging"
-	"github-listener/internal/Executor/Prometheus"
-	"github-listener/internal/config"
-	"github-listener/pkg"
+	"github-observer/internal/Executor"
+	"github-observer/internal/Executor/Logging"
+	"github-observer/internal/Executor/Prometheus"
+	"github-observer/internal/config"
+	"github-observer/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -20,9 +20,9 @@ var (
 	engine        *gin.Engine
 	executors     []Executor.IExecutor
 	rootCmd       = &cobra.Command{
-		Use:   "github-listener",
-		Short: "github-listener is a simple GitHub webhook listener",
-		Long:  "github-listener is a simple GitHub webhook listener.",
+		Use:   "github-observer",
+		Short: "github-observer is a simple GitHub observer",
+		Long:  "github-observer is a simple GitHub observer.",
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Usage()
 		},

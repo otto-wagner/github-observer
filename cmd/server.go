@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github-listener/internal/listener"
-	"github-listener/internal/router"
+	"github-observer/internal/listener"
+	"github-observer/internal/router"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

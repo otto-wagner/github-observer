@@ -1,4 +1,4 @@
-module github-listener
+module github-observer
 
 go 1.21
 
