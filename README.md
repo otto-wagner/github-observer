@@ -1,4 +1,4 @@
-# github-listener
+# github-observer
 A simple GitHub webhook listener that listen for Actions, Pull Requests and Pull Request review events and log them.
 
 ## local development

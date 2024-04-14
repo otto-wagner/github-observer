@@ -2,7 +2,11 @@
   "app": {
     "listenAddress": "127.0.0.1:8443",
     "trustedProxies": null,
-    "mode": "debug"
+    "mode": "debug",
+    "executors": [
+      "logging",
+      "prometheus"
+    ]
   },
   "ssl": {
     "cert": null,

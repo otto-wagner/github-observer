@@ -4,9 +4,10 @@ package router
 
 import (
 	"encoding/json"
-	"github-listener/internal/Executor/Logging"
-	"github-listener/internal/listener"
-	"github-listener/mocks"
+	"github-observer/internal/Executor"
+	"github-observer/internal/Executor/Logging"
+	"github-observer/internal/listener"
+	"github-observer/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +17,7 @@ import (
 
 func TestRouterIntegration(t *testing.T) {
 	executor := Logging.NewExecutor()
-	l := listener.NewListener(executor)
+	l := listener.NewListener([]Executor.IExecutor{executor})
 	engine := gin.New()
 	InitializeRoutes(engine, l)
 
@@ -37,7 +38,7 @@ func TestRouterIntegration(t *testing.T) {
 				Name: github.String("Analyze (go)"),
 			},
 			Repo: &github.Repository{
-				Name: github.String("github-listener"),
+				Name: github.String("github-observer"),
 			},
 		})
 
@@ -56,7 +57,7 @@ func TestRouterIntegration(t *testing.T) {
 				Title: github.String("chore: test pullrequest_listener"),
 			},
 			Repo: &github.Repository{
-				Name: github.String("github-listener"),
+				Name: github.String("github-observer"),
 			},
 		})
 
@@ -75,7 +76,7 @@ func TestRouterIntegration(t *testing.T) {
 				Title: github.String("chore: test pullrequest_listener"),
 			},
 			Repo: &github.Repository{
-				Name: github.String("github-listener"),
+				Name: github.String("github-observer"),
 			},
 			Review: &github.PullRequestReview{
 				Body: github.String("LGTM"),

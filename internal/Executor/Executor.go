@@ -3,7 +3,8 @@ package Executor
 import "github.com/google/go-github/v61/github"
 
 type IExecutor interface {
-	CheckRunEvent(github.CheckRunEvent)
-	PullRequestEvent(github.PullRequestEvent)
-	PullRequestReviewEvent(github.PullRequestReviewEvent)
+	Name() string
+	CheckRunEvent(github.CheckRunEvent) error
+	PullRequestEvent(github.PullRequestEvent) error
+	PullRequestReviewEvent(github.PullRequestReviewEvent) error
 }

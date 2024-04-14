@@ -24,10 +24,10 @@ mock/pkg:
 	cd ./pkg && mockery --all
 
 build:
-	go build -o bin/github-listener .
+	go build -o bin/github-observer .
 
 build/run:
-	./bin/github-listener server
+	./bin/github-observer server
 
 run:
 	go run . server

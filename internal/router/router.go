@@ -1,9 +1,10 @@
 package router
 
 import (
-	"github-listener/internal/listener"
+	"github-observer/internal/listener"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 )
 
@@ -17,6 +18,11 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener) {
 
 	e.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"health": "ok"})
+	})
+
+	e.GET("/metrics", func(c *gin.Context) {
+		handler := promhttp.Handler()
+		handler.ServeHTTP(c.Writer, c.Request)
 	})
 
 	el := e.Group("/listen")

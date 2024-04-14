@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"github-listener/internal/Executor"
-	loggingExecutor "github-listener/internal/Executor/Logging"
-	"github-listener/internal/config"
-	"github-listener/pkg"
+	"github-observer/internal/Executor"
+	"github-observer/internal/Executor/Logging"
+	"github-observer/internal/Executor/Prometheus"
+	"github-observer/internal/config"
+	"github-observer/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -17,11 +18,11 @@ var (
 	cfgFile       string
 	configuration config.Config
 	engine        *gin.Engine
-	executor      Executor.IExecutor
+	executors     []Executor.IExecutor
 	rootCmd       = &cobra.Command{
-		Use:   "github-listener",
-		Short: "github-listener is a simple GitHub webhook listener",
-		Long:  "github-listener is a simple GitHub webhook listener.",
+		Use:   "github-observer",
+		Short: "github-observer is a simple GitHub observer",
+		Long:  "github-observer is a simple GitHub observer.",
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Usage()
 		},
@@ -61,12 +62,14 @@ func initLogging() {
 }
 
 func initExecutor() {
-	mode := viper.GetString(configuration.App.Executor)
-	switch mode {
-	case "logging":
-		executor = loggingExecutor.NewExecutor()
-	default:
-		executor = loggingExecutor.NewExecutor()
+	appExecutors := viper.GetStringSlice("app.executors")
+	for _, e := range appExecutors {
+		switch e {
+		case "logging":
+			executors = append(executors, Logging.NewExecutor())
+		case "prometheus":
+			executors = append(executors, Prometheus.NewExecutor())
+		}
 	}
 }
 

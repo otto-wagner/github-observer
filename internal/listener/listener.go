@@ -1,7 +1,7 @@
 package listener
 
 import (
-	"github-listener/internal/Executor"
+	"github-observer/internal/Executor"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
 	"go.uber.org/zap"
@@ -15,21 +15,33 @@ type IListener interface {
 }
 
 type listener struct {
-	executor Executor.IExecutor
+	executors []Executor.IExecutor
 }
 
-func NewListener(executor Executor.IExecutor) IListener {
-	return &listener{executor}
+func NewListener(executors []Executor.IExecutor) IListener {
+	return &listener{executors}
 }
 
 func (l *listener) Action(c *gin.Context) {
-	var runEvent github.CheckRunEvent
-	if err := c.BindJSON(&runEvent); err != nil {
+	var event github.CheckRunEvent
+	if err := c.BindJSON(&event); err != nil {
 		zap.S().Errorw("Failed to bind CheckRunEvent", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 	}
 
-	l.executor.CheckRunEvent(runEvent)
+	var errOccurred bool
+	for _, e := range l.executors {
+		err := e.CheckRunEvent(event)
+		if err != nil {
+			zap.S().Errorw("Failed to execute workflow", "executor", e.Name(), "error", err.Error())
+			errOccurred = true
+		}
+	}
+	if errOccurred {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to execute workflow"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
 }
 
@@ -40,7 +52,19 @@ func (l *listener) PullRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 	}
 
-	l.executor.PullRequestEvent(event)
+	var errOccurred bool
+	for _, e := range l.executors {
+		err := e.PullRequestEvent(event)
+		if err != nil {
+			zap.S().Errorw("Failed to execute workflow", "executor", e.Name(), "error", err.Error())
+			errOccurred = true
+		}
+	}
+	if errOccurred {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to execute workflow"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
 }
 
@@ -51,6 +75,18 @@ func (l *listener) PullRequestReview(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 	}
 
-	l.executor.PullRequestReviewEvent(event)
+	var errOccurred bool
+	for _, e := range l.executors {
+		err := e.PullRequestReviewEvent(event)
+		if err != nil {
+			zap.S().Errorw("Failed to execute workflow", "executor", e.Name(), "error", err.Error())
+			errOccurred = true
+		}
+	}
+	if errOccurred {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "failed to execute workflow"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
 }

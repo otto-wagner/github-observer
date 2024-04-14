@@ -14,7 +14,7 @@ type AppConfig struct {
 	ListenAddress  string   `json:"listenAddress" validate:"hostname_port"`
 	TrustedProxies []string `json:"trustedProxies"`
 	Mode           string   `json:"mode" validate:"omitempty,oneof=release debug test"`
-	Executor       string   `json:"executor" validate:"omitempty,oneof=logging"`
+	Executors      []string `json:"executors" validate:"omitempty"`
 }
 
 type SslConfig struct {
