@@ -19,8 +19,8 @@ type executor struct {
 
 func NewExecutor() Executor.IExecutor {
 	return &executor{
-		registerLastRequestReceivedTime("run_event"),
-		registerCount("run_event"),
+		registerLastRequestReceivedTime("action_event"),
+		registerCount("action_event"),
 		registerLastRequestReceivedTime("pull_request_event"),
 		registerCount("pull_request_event"),
 		registerLastRequestReceivedTime("pull_request_review_event"),
