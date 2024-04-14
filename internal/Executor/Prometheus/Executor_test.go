@@ -107,7 +107,8 @@ func TestNewExecutor(t *testing.T) {
 		}
 
 		// when
-		err := NewExecutor().PullRequestReviewEvent(event)
+		executor := NewExecutor().(*executor)
+		err := executor.PullRequestReviewEvent(event)
 
 		// then
 		assert.NoError(t, err)
