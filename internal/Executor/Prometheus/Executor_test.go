@@ -37,9 +37,8 @@ func TestNewExecutor(t *testing.T) {
 			},
 		}
 
-		executor := NewExecutor().(*executor)
-
 		// when
+		executor := NewExecutor().(*executor)
 		err := executor.CheckRunEvent(event)
 
 		// then
@@ -78,10 +77,12 @@ func TestNewExecutor(t *testing.T) {
 		}
 
 		// when
-		_ = NewExecutor().PullRequestEvent(event)
+		executor := NewExecutor().(*executor)
+		err := executor.PullRequestEvent(event)
 
 		// then
-
+		assert.NoError(t, err)
+		// todo: more!
 	})
 
 	t.Run("Should log listener pull request review", func(t *testing.T) {
@@ -106,9 +107,10 @@ func TestNewExecutor(t *testing.T) {
 		}
 
 		// when
-		_ = NewExecutor().PullRequestReviewEvent(event)
+		err := NewExecutor().PullRequestReviewEvent(event)
 
 		// then
-
+		assert.NoError(t, err)
+		// todo: more!
 	})
 }
