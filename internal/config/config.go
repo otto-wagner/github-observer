@@ -15,6 +15,7 @@ type AppConfig struct {
 	TrustedProxies []string `json:"trustedProxies"`
 	Mode           string   `json:"mode" validate:"omitempty,oneof=release debug test"`
 	Executors      []string `json:"executors" validate:"omitempty"`
+	Watcher        bool     `json:"watcher"`
 }
 
 type SslConfig struct {

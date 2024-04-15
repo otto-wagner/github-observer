@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github-observer/internal/listener"
 	"github-observer/internal/router"
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
@@ -25,6 +24,7 @@ func init() {
 	//serverCmd.PersistentFlags().StringSliceP("app.trustedProxies", "t", []string{""}, "Action address of the HTTP API endpoint")
 	serverCmd.PersistentFlags().StringP("app.mode", "g", "release", "Gin mode")
 	serverCmd.PersistentFlags().StringP("app.executors", "e", "logging", "Executors to execute on event")
+	serverCmd.PersistentFlags().BoolP("app.watcher", "w", true, "Enable watcher")
 	// ssl
 	serverCmd.PersistentFlags().StringP("ssl.cert", "s", "conf/ssl.cert", "Path to SSL certificate")
 	serverCmd.PersistentFlags().StringP("ssl.key", "k", "conf/ssl.key", "Path to SSL key")
@@ -51,7 +51,7 @@ func startServer(_ *cobra.Command, _ []string) {
 		zap.S().Fatal("configuration validation failed")
 	}
 
-	router.InitializeRoutes(engine, listener.NewListener(executors))
+	router.InitializeRoutes(engine, watcher, listener)
 
 	err = engine.Run(configuration.App.ListenAddress)
 	if err != nil {

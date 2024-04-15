@@ -5,6 +5,8 @@ import (
 	"github-observer/internal/Executor/Logging"
 	"github-observer/internal/Executor/Prometheus"
 	"github-observer/internal/config"
+	l "github-observer/internal/listener"
+	w "github-observer/internal/watcher"
 	"github-observer/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -19,6 +21,8 @@ var (
 	configuration config.Config
 	engine        *gin.Engine
 	executors     []Executor.IExecutor
+	watcher       w.IWatcher
+	listener      l.IListener
 	rootCmd       = &cobra.Command{
 		Use:   "github-observer",
 		Short: "github-observer is a simple GitHub observer",
@@ -36,7 +40,7 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig, initLogging, initExecutor, initEngine)
+	cobra.OnInitialize(initConfig, initLogging, initExecutor, initListener, initWatcher, initEngine)
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(docCmd)
 }
@@ -70,6 +74,16 @@ func initExecutor() {
 		case "prometheus":
 			executors = append(executors, Prometheus.NewExecutor())
 		}
+	}
+}
+
+func initListener() {
+	listener = l.NewListener(executors)
+}
+
+func initWatcher() {
+	if viper.GetBool("app.watcher") {
+		watcher = w.NewWatcher(executors)
 	}
 }
 
