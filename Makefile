@@ -24,10 +24,13 @@ mock/pkg:
 	cd ./pkg && mockery --all
 
 build:
-	go build -o bin/github-observer .
+	go build -o app/github-observer .
 
 build/run:
-	./bin/github-observer server
+	./app/github-observer server
 
 run:
 	go run . server
+
+docker/start:
+	docker-compose up -d

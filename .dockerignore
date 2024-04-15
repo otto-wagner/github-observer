@@ -1,0 +1,5 @@
+.git
+mocks
+data
+*.md
+*_test.go

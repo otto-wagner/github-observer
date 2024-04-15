@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  github-observer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8443:8443"
+    user: observer
+    environment:
+      - USER_UID=1000
