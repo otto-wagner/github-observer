@@ -1,0 +1,15 @@
+{
+  "action": "completed",
+  "check_run": {
+    "name": "Analyze (go)",
+    "html_url": "https://github.com/otto-wagner/github-observer/actions/runs/8589035842/job/23534635896",
+    "status": "completed",
+    "conclusion": "success",
+    "started_at": "2024-04-07T13:12:37Z",
+    "completed_at": "2024-04-07T13:14:18Z"
+  },
+  "repository": {
+    "name": "github-observer",
+    "html_url": "https://github.com/otto-wagner/github-observer"
+  }
+}

@@ -4,9 +4,10 @@ package router
 
 import (
 	"encoding/json"
-	"github-observer/internal/Executor"
-	"github-observer/internal/Executor/Logging"
-	"github-observer/internal/listener"
+	"github-observer/internal/executor"
+	eLogging "github-observer/internal/executor/Logging"
+	ePrometheus "github-observer/internal/executor/Prometheus"
+	l "github-observer/internal/listener"
 	"github-observer/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
@@ -16,10 +17,11 @@ import (
 )
 
 func TestRouterIntegration(t *testing.T) {
-	executor := Logging.NewExecutor()
-	l := listener.NewListener([]Executor.IExecutor{executor})
 	engine := gin.New()
-	InitializeRoutes(engine, l)
+	executors := []executor.IExecutor{eLogging.NewExecutor(nil), ePrometheus.NewExecutor()}
+	listener := l.NewListener(executors)
+
+	InitializeRoutes(engine, listener)
 
 	t.Run("Should return ok", func(t *testing.T) {
 		// given

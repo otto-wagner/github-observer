@@ -1,12 +1,19 @@
 {
   "app": {
-    "listenAddress": "127.0.0.1:8443",
+    "listenAddress": "0.0.0.0:8443",
     "trustedProxies": null,
     "mode": "debug",
     "watcher": true,
     "executors": [
       "logging",
       "prometheus"
+    ],
+    "repositories": [
+      {
+        "owner": "otto-wagner",
+        "name": "github-observer",
+        "htmlUrl": "https://github.com/otto-wagner/github-observer"
+      }
     ]
   },
   "ssl": {

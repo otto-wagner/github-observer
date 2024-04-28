@@ -18,16 +18,16 @@ var serverCmd = &cobra.Command{
 
 func init() {
 	// config
-	serverCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is conf/common.json)")
+	serverCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "conf/common.json", "config file (default is conf/common.json)")
 	// app
-	serverCmd.PersistentFlags().StringP("app.listenAddress", "l", "0.0.0.0:8443", "Action address of the HTTP API endpoint")
+	//serverCmd.PersistentFlags().StringP("app.listenAddress", "l", "0.0.0.0:8443", "Action address of the HTTP API endpoint")
 	//serverCmd.PersistentFlags().StringSliceP("app.trustedProxies", "t", []string{""}, "Action address of the HTTP API endpoint")
-	serverCmd.PersistentFlags().StringP("app.mode", "g", "release", "Gin mode")
-	serverCmd.PersistentFlags().StringP("app.executors", "e", "logging", "Executors to execute on event")
-	serverCmd.PersistentFlags().BoolP("app.watcher", "w", true, "Enable watcher")
+	//serverCmd.PersistentFlags().StringP("app.mode", "g", "release", "Gin mode")
+	//serverCmd.PersistentFlags().StringSliceP("app.executors", "e", []string{"logging", "prometheus"}, "Executors to execute on event")
+	//serverCmd.PersistentFlags().BoolP("app.watcher", "w", true, "Enable watcher")
 	// ssl
-	serverCmd.PersistentFlags().StringP("ssl.cert", "s", "conf/ssl.cert", "Path to SSL certificate")
-	serverCmd.PersistentFlags().StringP("ssl.key", "k", "conf/ssl.key", "Path to SSL key")
+	//serverCmd.PersistentFlags().StringP("ssl.cert", "s", "conf/ssl.cert", "Path to SSL certificate")
+	//serverCmd.PersistentFlags().StringP("ssl.key", "k", "conf/ssl.key", "Path to SSL key")
 
 	// bind flags
 	err := viper.BindPFlags(serverCmd.PersistentFlags())
@@ -51,7 +51,7 @@ func startServer(_ *cobra.Command, _ []string) {
 		zap.S().Fatal("configuration validation failed")
 	}
 
-	router.InitializeRoutes(engine, watcher, listener)
+	router.InitializeRoutes(engine, listener)
 
 	err = engine.Run(configuration.App.ListenAddress)
 	if err != nil {

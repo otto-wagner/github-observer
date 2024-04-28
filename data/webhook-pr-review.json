@@ -1,0 +1,27 @@
+{
+  "action": "submitted",
+  "review": {
+    "user": {
+      "login": "otto-wagner"
+    },
+    "body": "LGTM",
+    "state": "commented",
+    "html_url": "https://github.com/otto-wagner/github-observer/pull/2#pullrequestreview-1985121262"
+  },
+  "pull_request": {
+    "html_url": "https://github.com/otto-wagner/github-observer/pull/2",
+    "title": "chore: test pullrequest_listener",
+    "user": {
+      "login": "otto-wagner"
+    },
+    "body": "Want to test Pull request listener",
+    "created_at": "2024-04-07T15:04:03Z",
+    "updated_at": "2024-04-07T15:49:49Z",
+    "closed_at": null,
+    "merged_at": null
+  },
+  "repository": {
+    "name": "github-observer",
+    "html_url": "https://github.com/otto-wagner/github-observer"
+  }
+}

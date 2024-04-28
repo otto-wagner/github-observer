@@ -2,15 +2,15 @@ package router
 
 import (
 	"github-observer/internal/listener"
-	"github-observer/internal/watcher"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"net/http"
 )
 
-func InitializeRoutes(e *gin.Engine, w watcher.IWatcher, l listener.IListener) {
+func InitializeRoutes(e *gin.Engine, l listener.IListener) {
 	//err = e.SetTrustedProxies(configuration.TrustedProxies)
 	//if err != nil {
 	//	return
@@ -19,6 +19,7 @@ func InitializeRoutes(e *gin.Engine, w watcher.IWatcher, l listener.IListener) {
 	addCorsMiddleware(e)
 
 	e.GET("/health", func(c *gin.Context) {
+		zap.S().Info("Health check")
 		c.JSON(http.StatusOK, gin.H{"health": "ok"})
 	})
 
@@ -33,16 +34,13 @@ func InitializeRoutes(e *gin.Engine, w watcher.IWatcher, l listener.IListener) {
 		}
 	}
 
-	el := e.Group("/listen")
-	el.POST("/action", l.Action)
-	el.POST("/pullrequest", l.PullRequest)
-	el.POST("/pullrequest/review", l.PullRequestReview)
-
-	if w != nil {
-		ew := e.Group("/watch")
-		ew.GET("/actions", w.Actions)
-		ew.GET("/pullrequests", w.PullRequests)
+	if l != nil {
+		el := e.Group("/listen")
+		el.POST("/action", l.Action)
+		el.POST("/pullrequest", l.PullRequest)
+		el.POST("/pullrequest/review", l.PullRequestReview)
 	}
+
 }
 
 func addCorsMiddleware(engine *gin.Engine) {

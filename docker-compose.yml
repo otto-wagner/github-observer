@@ -9,6 +9,7 @@ services:
     user: observer
     environment:
       - USER_UID=1000
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
 
   prometheus:
     image: prom/prometheus:latest

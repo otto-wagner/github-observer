@@ -11,11 +11,18 @@ import (
 )
 
 type AppConfig struct {
-	ListenAddress  string   `json:"listenAddress" validate:"hostname_port"`
-	TrustedProxies []string `json:"trustedProxies"`
-	Mode           string   `json:"mode" validate:"omitempty,oneof=release debug test"`
-	Executors      []string `json:"executors" validate:"omitempty"`
-	Watcher        bool     `json:"watcher"`
+	ListenAddress  string             `json:"listenAddress" validate:"hostname_port"`
+	TrustedProxies []string           `json:"trustedProxies"`
+	Mode           string             `json:"mode" validate:"omitempty,oneof=release debug test"`
+	Executors      []string           `json:"executors" validate:"omitempty"`
+	Watcher        bool               `json:"watcher"`
+	Repositories   []RepositoryConfig `json:"repositories"`
+}
+
+type RepositoryConfig struct {
+	Name    string `json:"name"`
+	Owner   string `json:"owner"`
+	HtmlUrl string `json:"htmlUrl"`
 }
 
 type SslConfig struct {
