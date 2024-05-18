@@ -1,10 +1,13 @@
 package cmd
 
 import (
-	"github-observer/internal/Executor"
-	"github-observer/internal/Executor/Logging"
-	"github-observer/internal/Executor/Prometheus"
 	"github-observer/internal/config"
+	"github-observer/internal/core"
+	"github-observer/internal/executor"
+	"github-observer/internal/executor/Logging"
+	"github-observer/internal/executor/Prometheus"
+	l "github-observer/internal/listener"
+	w "github-observer/internal/watcher"
 	"github-observer/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -18,7 +21,8 @@ var (
 	cfgFile       string
 	configuration config.Config
 	engine        *gin.Engine
-	executors     []Executor.IExecutor
+	executors     []executor.IExecutor
+	listener      l.IListener
 	rootCmd       = &cobra.Command{
 		Use:   "github-observer",
 		Short: "github-observer is a simple GitHub observer",
@@ -36,7 +40,7 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig, initLogging, initExecutor, initEngine)
+	cobra.OnInitialize(initConfig, initLogging, initExecutor, initListener, initWatcher, initEngine)
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(docCmd)
 }
@@ -63,13 +67,48 @@ func initLogging() {
 
 func initExecutor() {
 	appExecutors := viper.GetStringSlice("app.executors")
+
 	for _, e := range appExecutors {
 		switch e {
 		case "logging":
-			executors = append(executors, Logging.NewExecutor())
+			executors = append(executors, Logging.NewExecutor(Logging.NewMemory()))
 		case "prometheus":
 			executors = append(executors, Prometheus.NewExecutor())
 		}
+	}
+	if len(executors) == 0 {
+		zap.S().Fatal("no executor")
+	}
+}
+
+func initListener() {
+	listener = l.NewListener(executors)
+}
+
+func initWatcher() {
+	if viper.GetBool("app.watcher") {
+		token := os.Getenv("GITHUB_TOKEN")
+		if token == "" {
+			zap.S().Fatal("no GITHUB_TOKEN")
+		}
+
+		var repositoriesConfig []config.RepositoryConfig
+		err := viper.UnmarshalKey("app.repositories", &repositoriesConfig)
+		if err != nil {
+			zap.S().Fatalw("failed to unmarshal app.repositories", "error", err)
+		}
+
+		var repositories []core.Repository
+		for _, repo := range repositoriesConfig {
+			coreRepo := core.Repository{
+				Name:   repo.Name,
+				Owner:  repo.Owner,
+				Branch: repo.Branch,
+			}
+			repositories = append(repositories, coreRepo)
+		}
+
+		w.NewWatcher(token, repositories, executors).Watch()
 	}
 }
 

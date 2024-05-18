@@ -9,11 +9,12 @@ services:
     user: observer
     environment:
       - USER_UID=1000
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
 
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
@@ -30,10 +31,11 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     depends_on:
       - github-observer
       - prometheus
 
 volumes:
-    grafana_data:
+  grafana_data:
