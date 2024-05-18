@@ -24,3 +24,7 @@ go.work
 
 # build
 bin/
+
+github_observer.log
+
+conf/local.json
