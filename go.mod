@@ -6,15 +6,16 @@ require (
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-co-op/gocron v1.37.0
-	github.com/go-playground/validator/v10 v10.20.0
+	github.com/go-playground/validator/v10 v10.21.0
 	github.com/google/go-github/v61 v61.0.0
 	github.com/migueleliasweb/go-github-mock v0.0.23
 	github.com/prometheus/client_golang v1.19.1
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.2
+	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/oauth2 v0.20.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
@@ -74,6 +75,5 @@ require (
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
