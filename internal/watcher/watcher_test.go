@@ -5,57 +5,64 @@ package watcher
 import (
 	"github-observer/internal/core"
 	"github-observer/internal/executor"
-	internalMocks "github-observer/internal/mocks"
+	"github-observer/internal/mocks"
 	"github.com/google/go-github/v61/github"
 	"github.com/migueleliasweb/go-github-mock/src/mock"
+	m "github.com/stretchr/testify/mock"
 	"testing"
 )
 
-func TestWatcherPullRequests(t *testing.T) {
-
-	t.Run("Should watch pull requests and send them to executors", func(t *testing.T) {
+func TestWatchPullRequests(t *testing.T) {
+	t.Run("Should list pull requests and send them to executors", func(t *testing.T) {
 		// given
 		repository := core.Repository{Owner: "otto-wagner", Name: "github-observer"}
-		pullRequests := []*github.PullRequest{{Title: github.String(repository.Owner)}}
 
-		mockedHTTPClient := mock.NewMockedHTTPClient(mock.WithRequestMatch(mock.GetReposPullsByOwnerByRepo, pullRequests))
+		mockedExecutor := new(mocks.IExecutor)
+		mockedExecutor.On("PullRequests", repository, m.Anything)
+		mockedSecondExecutor := new(mocks.IExecutor)
+		mockedSecondExecutor.On("PullRequests", repository, m.Anything)
 
-		mockedGithubClient := github.NewClient(mockedHTTPClient)
-		mockedExecutor := new(internalMocks.IExecutor)
-		mockedExecutor.On("PullRequests", pullRequests)
+		mockedGithubClient := mock.NewMockedHTTPClient(
+			mock.WithRequestMatch(mock.GetReposPullsByOwnerByRepo,
+				[]github.PullRequest{{ID: github.Int64(1)}, {ID: github.Int64(2)}}),
+		)
 
 		// when
-		w := NewWatcher(mockedGithubClient, nil, []executor.IExecutor{mockedExecutor})
+		w := NewWatcher("token", github.NewClient(mockedGithubClient), []core.Repository{repository}, []executor.IExecutor{mockedExecutor, mockedSecondExecutor})
 		w.PullRequests(repository)
 
 		// then
 		mockedExecutor.AssertExpectations(t)
+		mockedSecondExecutor.AssertExpectations(t)
 	})
 }
 
-func TestWatcherWorkflowRuns(t *testing.T) {
-
-	t.Run("Should watch workflow runs and send them to executors", func(t *testing.T) {
+func TestWatchWorkflows(t *testing.T) {
+	t.Run("Should get latest workflow runs and send them to executors", func(t *testing.T) {
 		// given
 		repository := core.Repository{Owner: "otto-wagner", Name: "github-observer"}
-		workflows := []*github.Workflow{{ID: github.Int64(1), Name: github.String("CodeQL")}}
-		workflowRuns := []*github.WorkflowRun{{ID: github.Int64(1)}}
 
-		mockedHTTPClient := mock.NewMockedHTTPClient(
+		workflows := []*github.Workflow{{ID: github.Int64(1), Name: github.String("CodeQL")}}
+		workflowRuns := []*github.WorkflowRun{{ID: github.Int64(1)}, {ID: github.Int64(2)}}
+
+		mockedExecutor := new(mocks.IExecutor)
+		mockedExecutor.On("LastWorkflows", repository, m.Anything)
+		mockedSecondExecutor := new(mocks.IExecutor)
+		mockedSecondExecutor.On("LastWorkflows", repository, m.Anything)
+
+		mockedGithubClient := mock.NewMockedHTTPClient(
 			mock.WithRequestMatch(mock.GetReposActionsWorkflowsByOwnerByRepo,
-				github.Workflows{TotalCount: github.Int(1), Workflows: workflows}),
+				github.Workflows{Workflows: workflows}),
 			mock.WithRequestMatch(mock.GetReposActionsWorkflowsRunsByOwnerByRepoByWorkflowId,
-				github.WorkflowRuns{TotalCount: github.Int(1), WorkflowRuns: workflowRuns}),
+				github.WorkflowRuns{WorkflowRuns: workflowRuns}),
 		)
 
-		mockedExecutor := new(internalMocks.IExecutor)
-		mockedExecutor.On("LastWorkflows", workflowRuns)
-
 		// when
-		w := NewWatcher(github.NewClient(mockedHTTPClient), nil, []executor.IExecutor{mockedExecutor})
+		w := NewWatcher("token", github.NewClient(mockedGithubClient), []core.Repository{repository}, []executor.IExecutor{mockedExecutor, mockedSecondExecutor})
 		w.WorkflowRuns(repository)
 
 		// then
 		mockedExecutor.AssertExpectations(t)
+		mockedSecondExecutor.AssertExpectations(t)
 	})
 }

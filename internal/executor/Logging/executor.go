@@ -30,20 +30,28 @@ func (e *executor) EventPullRequestReview(event github.PullRequestReviewEvent) {
 	return
 }
 
-func (e *executor) LastWorkflows(repository core.Repository, runs []*github.WorkflowRun) {
-	for _, run := range runs {
+func (e *executor) LastWorkflows(_ core.Repository, workflowRuns []*github.WorkflowRun) {
+	for _, run := range workflowRuns {
 		workflow := core.ConvertToWorkflow(*run)
 
-		memWorkflow, exists := e.memory.GetLastRepositoryWorkflow(repository.FullName)
+		memWorkflow, exists := e.memory.GetLastWorkflowRun(workflow)
 		if !exists {
-			e.memory.StoreLastRepositoryWorkflow(repository.FullName, workflow)
+			err := e.memory.StoreLastRepositoryWorkflow(workflow)
+			if err != nil {
+				zap.S().Errorw("WorkflowRun", "Action", workflow, "Error", err)
+				continue
+			}
 			if workflow.Conclusion != "success" {
 				zap.S().Infow("WorkflowRun", "Action", workflow)
 			}
 			continue
 		}
-		if workflow.WorkflowId != memWorkflow.WorkflowId && workflow.RunNumber > memWorkflow.RunNumber {
-			e.memory.StoreLastRepositoryWorkflow(repository.FullName, workflow)
+		if workflow.RunNumber > memWorkflow.RunNumber {
+			err := e.memory.StoreLastRepositoryWorkflow(workflow)
+			if err != nil {
+				zap.S().Errorw("WorkflowRun", "Action", workflow, "Error", err)
+				continue
+			}
 			if workflow.Conclusion != "success" {
 				zap.S().Infow("WorkflowRun", "Action", workflow)
 			}

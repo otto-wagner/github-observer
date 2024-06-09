@@ -3,6 +3,7 @@
 package Prometheus
 
 import (
+	"github-observer/internal/core"
 	"github.com/google/go-github/v61/github"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
@@ -85,6 +86,7 @@ func TestExecutorPrometheusEventPullRequestReview(t *testing.T) {
 func TestExecutorPrometheusWorkflowRuns(t *testing.T) {
 	t.Run("Should count failed workflow run", func(t *testing.T) {
 		// given
+		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}
 		runs := []*github.WorkflowRun{{
 			Conclusion: github.String("failure"),
 			Repository: &github.Repository{FullName: github.String("otto-wagner/github-observer")},
@@ -94,7 +96,7 @@ func TestExecutorPrometheusWorkflowRuns(t *testing.T) {
 		}}
 
 		// when
-		exec.LastWorkflows(runs)
+		exec.LastWorkflows(repository, runs)
 
 		// then
 		assert.Equal(t, 1, testutil.CollectAndCount(exec.workflowRun))
@@ -104,6 +106,7 @@ func TestExecutorPrometheusWorkflowRuns(t *testing.T) {
 func TestExecutorPrometheusPullRequests(t *testing.T) {
 	t.Run("Should count pull request", func(t *testing.T) {
 		// given
+		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}
 
 		pullRequests := []*github.PullRequest{{
 			State: github.String("open"),
@@ -121,9 +124,32 @@ func TestExecutorPrometheusPullRequests(t *testing.T) {
 		}
 
 		// when
-		exec.PullRequests(pullRequests)
+		exec.PullRequests(repository, pullRequests)
 
 		// then
 		assert.Equal(t, 1, testutil.CollectAndCount(exec.pullRequest))
+	})
+
+	t.Run("Should not count pull requests when no pull requests given", func(t *testing.T) {
+		// given
+		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}
+		var pullRequests []*github.PullRequest
+
+		// when
+		exec.PullRequests(repository, pullRequests)
+
+		// then
+		assert.Equal(t, 0, testutil.CollectAndCount(exec.pullRequest))
+	})
+
+}
+
+func TestExecutorPrometheusPullRequestReview(t *testing.T) {
+	// ignored
+	t.Run("Ignored", func(t *testing.T) {
+		// given
+		// when
+		exec.EventPullRequestReview(github.PullRequestReviewEvent{})
+		// then
 	})
 }

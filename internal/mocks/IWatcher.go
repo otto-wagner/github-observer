@@ -13,6 +13,11 @@ type IWatcher struct {
 	mock.Mock
 }
 
+// CheckRateLimit provides a mock function with given fields:
+func (_m *IWatcher) CheckRateLimit() {
+	_m.Called()
+}
+
 // PullRequests provides a mock function with given fields: _a0
 func (_m *IWatcher) PullRequests(_a0 core.Repository) {
 	_m.Called(_a0)
