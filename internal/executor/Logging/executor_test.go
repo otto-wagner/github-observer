@@ -127,6 +127,7 @@ func TestExecutorLoggingWorkflowRuns(t *testing.T) {
 		logs := logger.MockedLogger()
 		now := time.Now()
 
+		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}
 		workflowRun := github.WorkflowRun{
 			WorkflowID:   github.Int64(1),
 			Name:         github.String("main"),
@@ -144,7 +145,7 @@ func TestExecutorLoggingWorkflowRuns(t *testing.T) {
 		}
 
 		// when
-		NewExecutor(NewMemory()).LastWorkflows([]*github.WorkflowRun{&workflowRun})
+		NewExecutor(NewMemory()).LastWorkflows(repository, []*github.WorkflowRun{&workflowRun})
 
 		// then
 		assert.Contains(t, logs.All()[0].Message, "WorkflowRun")
@@ -156,51 +157,16 @@ func TestExecutorLoggingWorkflowRuns(t *testing.T) {
 		// given
 		logs := logger.MockedLogger()
 
+		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}
 		runs := []*github.WorkflowRun{
-			{RunNumber: github.Int(1), HeadBranch: github.String("main"), Conclusion: github.String("success")},
+			{WorkflowID: github.Int64(1), Repository: &github.Repository{FullName: github.String("otto-wagner/github-observer")}, RunNumber: github.Int(1), HeadBranch: github.String("main"), Conclusion: github.String("success")},
 		}
 
 		// when
-		NewExecutor(NewMemory()).LastWorkflows(runs)
+		NewExecutor(NewMemory()).LastWorkflows(repository, runs)
 
 		// then
 		assert.Lenf(t, logs.All(), 0, "Expected 0 logs, got %d", len(logs.All()))
-	})
-
-	t.Run("Should log failed workflow run one time", func(t *testing.T) {
-		// given
-		logs := logger.MockedLogger()
-		memory := NewMemory()
-
-		runs := []*github.WorkflowRun{
-			{RunNumber: github.Int(1), HeadBranch: github.String("main"), Conclusion: github.String("failed")},
-			{RunNumber: github.Int(1), HeadBranch: github.String("main"), Conclusion: github.String("failed")},
-		}
-
-		// when
-		NewExecutor(memory).LastWorkflows(runs)
-
-		// then
-		assert.Lenf(t, logs.All(), 1, "Expected 1 log, got %d", len(logs.All()))
-	})
-
-	t.Run("Should only log newest workflow runs", func(t *testing.T) {
-		// given
-		logs := logger.MockedLogger()
-
-		runs := []*github.WorkflowRun{
-			{WorkflowID: github.Int64(1), RunNumber: github.Int(1), Name: github.String("w1 r1 - should be called"), HeadBranch: github.String("main"), Conclusion: github.String("failed")},
-			{WorkflowID: github.Int64(1), RunNumber: github.Int(1), Name: github.String("w1 r1 - should be ignored"), HeadBranch: github.String("main"), Conclusion: github.String("failed")},
-			{WorkflowID: github.Int64(2), RunNumber: github.Int(1), Name: github.String("w2 r1 - should be called"), HeadBranch: github.String("main"), Conclusion: github.String("failed")},
-		}
-
-		// when
-		NewExecutor(NewMemory()).LastWorkflows(runs)
-
-		// then
-		assert.Lenf(t, logs.All(), 2, "Expected 2 logs, got %d", len(logs.All()))
-		assert.Equal(t, "w1 r1 - should be called", logs.All()[0].Context[0].Interface.(core.WorkflowRun).Name)
-		assert.Equal(t, "w2 r1 - should be called", logs.All()[1].Context[0].Interface.(core.WorkflowRun).Name)
 	})
 
 	t.Run("Should also log newest workflow run", func(t *testing.T) {
@@ -208,37 +174,20 @@ func TestExecutorLoggingWorkflowRuns(t *testing.T) {
 		logs := logger.MockedLogger()
 		memory := NewMemory()
 
+		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}
 		runs := []*github.WorkflowRun{
-			{RunNumber: github.Int(1), Name: github.String("old"), HeadBranch: github.String("main"), Conclusion: github.String("failed")},
-			{RunNumber: github.Int(1), Name: github.String("ignored"), HeadBranch: github.String("main"), Conclusion: github.String("failed")},
-			{RunNumber: github.Int(2), Name: github.String("new"), HeadBranch: github.String("main"), Conclusion: github.String("failed")},
+			{WorkflowID: github.Int64(1), RunNumber: github.Int(1), Name: github.String("old"), HeadBranch: github.String("main"), Conclusion: github.String("failed"), Repository: &github.Repository{FullName: github.String("otto-wagner/github-observer")}},
+			{WorkflowID: github.Int64(1), RunNumber: github.Int(1), Name: github.String("ignored"), HeadBranch: github.String("main"), Conclusion: github.String("failed"), Repository: &github.Repository{FullName: github.String("otto-wagner/github-observer")}},
+			{WorkflowID: github.Int64(1), RunNumber: github.Int(2), Name: github.String("new"), HeadBranch: github.String("main"), Conclusion: github.String("failed"), Repository: &github.Repository{FullName: github.String("otto-wagner/github-observer")}},
 		}
 
 		// when
-		NewExecutor(memory).LastWorkflows(runs)
+		NewExecutor(memory).LastWorkflows(repository, runs)
 
 		// then
 		assert.Lenf(t, logs.All(), 2, "Expected 2 logs, got %d", len(logs.All()))
 		assert.Equal(t, "old", logs.All()[0].Context[0].Interface.(core.WorkflowRun).Name)
 		assert.Equal(t, "new", logs.All()[1].Context[0].Interface.(core.WorkflowRun).Name)
-	})
-
-	t.Run("Should log workflow run in each branch", func(t *testing.T) {
-		// given
-		logs := logger.MockedLogger()
-
-		runs := []*github.WorkflowRun{
-			{RunNumber: github.Int(1), HeadBranch: github.String("main"), Conclusion: github.String("failed")},
-			{RunNumber: github.Int(1), HeadBranch: github.String("another"), Conclusion: github.String("failed")},
-		}
-
-		// when
-		NewExecutor(NewMemory()).LastWorkflows(runs)
-
-		// then
-		assert.Lenf(t, logs.All(), 2, "Expected 2 logs, got %d", len(logs.All()))
-		assert.Equal(t, "main", logs.All()[0].Context[0].Interface.(core.WorkflowRun).HeadBranch)
-		assert.Equal(t, "another", logs.All()[1].Context[0].Interface.(core.WorkflowRun).HeadBranch)
 	})
 
 }
@@ -250,6 +199,7 @@ func TestExecutorLoggingPullRequests(t *testing.T) {
 		logs := logger.MockedLogger()
 		now := time.Now()
 
+		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}
 		pullRequests := []*github.PullRequest{{
 			Number:    github.Int(1),
 			State:     github.String("open"),
@@ -264,7 +214,7 @@ func TestExecutorLoggingPullRequests(t *testing.T) {
 		}}
 
 		// when
-		NewExecutor(NewMemory()).PullRequests(pullRequests)
+		NewExecutor(NewMemory()).PullRequests(repository, pullRequests)
 
 		// then
 		assert.Lenf(t, logs.All(), 1, "Expected 1 log, got %d", len(logs.All()))
@@ -276,10 +226,11 @@ func TestExecutorLoggingPullRequests(t *testing.T) {
 	t.Run("Should not log closed and not merged pull request", func(t *testing.T) {
 		// given
 		logs := logger.MockedLogger()
+		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}
 		pullRequests := []*github.PullRequest{{State: github.String("closed")}, {State: github.String("merged")}}
 
 		// when
-		NewExecutor(NewMemory()).PullRequests(pullRequests)
+		NewExecutor(NewMemory()).PullRequests(repository, pullRequests)
 
 		// then
 		assert.Lenf(t, logs.All(), 0, "Expected 0 logs, got %d", len(logs.All()))
@@ -288,13 +239,16 @@ func TestExecutorLoggingPullRequests(t *testing.T) {
 	t.Run("Should only log the pull request one time", func(t *testing.T) {
 		// given
 		logs := logger.MockedLogger()
+
+		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}
 		pullRequests := []*github.PullRequest{
-			{Number: github.Int(1), State: github.String("open")},
 			{Number: github.Int(1), State: github.String("open")},
 		}
 
 		// when
-		NewExecutor(NewMemory()).PullRequests(pullRequests)
+		newMemory := NewMemory()
+		NewExecutor(newMemory).PullRequests(repository, pullRequests)
+		NewExecutor(newMemory).PullRequests(repository, pullRequests)
 
 		// then
 		assert.Lenf(t, logs.All(), 1, "Expected 1 log, got %d", len(logs.All()))

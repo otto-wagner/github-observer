@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"github-observer/internal/config"
 	"github-observer/internal/core"
 	"github-observer/internal/executor"
@@ -10,10 +11,12 @@ import (
 	w "github-observer/internal/watcher"
 	"github-observer/pkg"
 	"github.com/gin-gonic/gin"
+	"github.com/google/go-github/v61/github"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"golang.org/x/oauth2"
 	"os"
 )
 
@@ -107,8 +110,9 @@ func initWatcher() {
 			}
 			repositories = append(repositories, coreRepo)
 		}
+		client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})))
 
-		w.NewWatcher(token, repositories, executors).Watch()
+		w.NewWatcher(token, client, repositories, executors).Watch()
 	}
 }
 

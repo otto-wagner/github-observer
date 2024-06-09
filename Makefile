@@ -4,13 +4,14 @@ setup:
 	go mod tidy
 	go mod verify
 
-test: test/unit test/integration
+test:
+	go test ./... -tags=unit,integration -coverprofile=coverage.out
 
 test/unit:
-	go test ./... -tags=unit
+	go test ./... -tags=unit -coverprofile=coverage.out
 
 test/integration:
-	go test ./... -tags=integration
+	go test ./... -tags=integration -coverprofile=coverage.out
 
 mock: mock/setup mock/internal mock/pkg
 
