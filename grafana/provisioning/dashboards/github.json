@@ -108,7 +108,7 @@
                         {
                             "targetBlank": true,
                             "title": "",
-                            "url": "https://github.com/${__field.labels.repository_full_name}/actions?query=is%3Afailure"
+                            "url": "https://github.com/${__field.labels.repository_full_name}/actions?query=is%3Afailure+event%3Apush"
                         }
                     ],
                     "mappings": [],

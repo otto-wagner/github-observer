@@ -123,7 +123,7 @@ func (w *watcher) WorkflowRuns(repository core.Repository) {
 func (w *watcher) getLatestWorkflowRuns(repository core.Repository) (latestWorkflowRuns []*github.WorkflowRun, err error) {
 	for _, workflow := range w.workflows[repository] {
 		lastRun, _, err := w.client.Actions.ListWorkflowRunsByID(context.Background(), repository.Owner, repository.Name, workflow.GetID(),
-			&github.ListWorkflowRunsOptions{ListOptions: github.ListOptions{PerPage: 1}, Branch: repository.Branch},
+			&github.ListWorkflowRunsOptions{ListOptions: github.ListOptions{PerPage: 1}, Branch: repository.Branch, Event: "push"},
 		)
 		if err != nil {
 			return nil, err
