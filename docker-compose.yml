@@ -4,21 +4,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8443:8443"
     user: observer
     environment:
       - USER_UID=1000
       - GITHUB_TOKEN=${GITHUB_TOKEN}
+    ports:
+      - "8443:8443"
+    networks:
+        - github-observer
 
   prometheus:
     image: prom/prometheus:latest
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - "9090:9090"
+    networks:
+      - github-observer
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
       - github-observer
 
@@ -26,6 +30,8 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    networks:
+      - github-observer
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -34,8 +40,30 @@ services:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     depends_on:
-      - github-observer
       - prometheus
+
+#  ngrok:
+#    image: ngrok/ngrok:latest
+#    ports:
+#      - "4040:4040"
+#    networks:
+#      - github-observer
+#    command:
+#      - "start"
+#      - "--all"
+#      - "--config"
+#      - "/etc/ngrok.yml"
+#    environment:
+#      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+#    volumes:
+#      - ./ngrok/etc/ngrok.yml:/etc/ngrok.yml
+#    depends_on:
+#        - github-observer
+#        - prometheus
+#        - grafana
 
 volumes:
   grafana_data:
+
+networks:
+  github-observer:

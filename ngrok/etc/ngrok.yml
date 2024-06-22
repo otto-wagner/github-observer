@@ -1,0 +1,22 @@
+version: "2"
+web_addr: localhost:4040
+log: stdout
+
+tunnels:
+  observer:
+    addr: github-observer:8443
+    proto: http
+    # https://dashboard.ngrok.com/cloud-edge/domains
+    # domain: you_domain
+    verify_webhook:
+      provider: github
+      # github webhook secret
+      secret:
+
+#  prometheus:
+#      addr: prometheus:9090
+#      proto: http
+#
+#  grafana:
+#      addr: grafana:3000
+#      proto: http

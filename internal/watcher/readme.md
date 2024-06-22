@@ -1,21 +1,26 @@
 # Watcher
-Ein Watcher-Prozess wird implementiert, der regelmäßig Daten von GitHub abruft. 
-Die abgerufenen Daten werden dann an einen Executor weitergeleitet, der diese verarbeitet und die entsprechenden Aktionen ausführt.
+A watcher process is implemented that regularly retrieves data from GitHub.
+The retrieved data is then forwarded to an executor, which processes it and performs the corresponding actions.
 
 ## Github API
-GitHub stellt eine REST-API zur Verfügung, die es ermöglicht, auf verschiedene Daten zuzugreifen.
-Die API kann verwendet werden, um Repositories, Pull Requests, Issues, Workflow-Runs und vieles mehr abzurufen.
-Link zur [GitHub API](https://docs.github.com/en/rest/reference).
+GitHub provides a REST API that allows access to various data.
+The API can be used to retrieve repositories, pull requests, issues, workflow runs, and much more.
+Link to the [GitHub API](https://docs.github.com/en/rest/reference).
 
 ## Pull Requests
-Es werden alle noch offenen Pull Requests abgefragt und an die Executor weitergeleitet.
+All open pull requests are queried and forwarded to the executor.
 
-## Workflows Runs
-Ein wichtiger Teil dieses Prozesses ist die Abfrage und Verarbeitung von Workflow-Runs eines bestimmten Repositories.
-1. Zunächst werden alle Workflows der Repositories ermittelt. 
-   - Dazu wird die GitHub API verwendet, um alle Workflows eines Repositories abzurufen.
-     - `GET /repos/{owner}/{repo}/actions/workflows`: Listet alle Workflows eines Repositories auf.
-2. Nun wird der letzte abgeschlossene ("completed") Run des Workflows vom `main` oder `master` Branch abgefragt.
-   - Dazu wird die GitHub API verwendet, um alle Workflow-Runs eines Repositories abzurufen.
-     - `GET /repos/{owner}/{repo}/actions/runs`: Listet alle Workflow-Runs eines Repositories auf.
-3. Abschließend werden die ermittelten Workflow-Runs an die Executor weitergeleitet.
+## Workflow Runs
+An important part of this process is the querying and processing of workflow runs of a specific repository.
+1. First, all workflows of the repositories are determined.
+    - The GitHub API is used to retrieve all workflows of a repository.
+        - `GET /repos/{owner}/{repo}/actions/workflows`: Lists all workflows of a repository.
+2. Now, the last completed ("completed") run of the workflow from the `main` or `master` branch is queried.
+    - The GitHub API is used to retrieve all workflow runs of a repository.
+        - `GET /repos/{owner}/{repo}/actions/runs`: Lists all workflow runs of a repository.
+3. Finally, the determined workflow runs are forwarded to the executor.
+
+## Github Rate Limit
+The GitHub API has a rate limit. This means that only a certain number of requests can be made within a certain period of time.
+If the rate limit is exceeded, the API will return an error message.
+To avoid this, the watcher process is implemented in such a way that it waits for a certain period of time before making the next request.
