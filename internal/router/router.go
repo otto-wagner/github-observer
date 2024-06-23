@@ -44,7 +44,7 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener) {
 
 	if l != nil {
 		el := e.Group("/listen")
-		el.POST("/action", l.Action)
+		el.POST("/workflow", l.Workflow)
 		el.POST("/pullrequest", l.PullRequest)
 		el.POST("/pullrequest/review", l.PullRequestReview)
 	}

@@ -17,37 +17,6 @@ func init() {
 	exec = NewExecutor().(*executor)
 }
 
-func TestExecutorPrometheusEventRun(t *testing.T) {
-	t.Run("Should count action", func(t *testing.T) {
-		// given
-		event := github.CheckRunEvent{
-			Action: github.String("completed"), CheckRun: &github.CheckRun{
-				ID:         github.Int64(1),
-				Name:       github.String("Analyze (go)"),
-				Status:     github.String("completed"),
-				Conclusion: github.String("success"),
-			},
-			Repo: &github.Repository{
-				FullName: github.String("otto-wagner/github-observer"),
-			},
-		}
-
-		// when
-		exec.EventRun(event)
-
-		// then
-		assert.Equal(t, 1, testutil.CollectAndCount(exec.eventRun))
-		assert.Greater(t, testutil.ToFloat64(exec.eventRun.WithLabelValues(
-			event.GetAction(),
-			strconv.FormatInt(event.GetCheckRun().GetID(), 10),
-			event.GetCheckRun().GetName(),
-			event.GetCheckRun().GetStatus(),
-			event.GetCheckRun().GetConclusion(),
-			event.GetRepo().GetFullName(),
-		)), float64(0))
-	})
-}
-
 func TestExecutorPrometheusEventPullRequest(t *testing.T) {
 
 	t.Run("Should count pull request", func(t *testing.T) {
@@ -83,7 +52,54 @@ func TestExecutorPrometheusEventPullRequestReview(t *testing.T) {
 	// ignored
 }
 
-func TestExecutorPrometheusWorkflowRuns(t *testing.T) {
+func TestExecutorPrometheusEventWorkflowRun(t *testing.T) {
+	t.Run("Should count workflow run and delete success runs", func(t *testing.T) {
+		// given
+		run := github.WorkflowRunEvent{
+			WorkflowRun: &github.WorkflowRun{
+				Name:       github.String("main"),
+				ID:         github.Int64(1),
+				RunNumber:  github.Int(1),
+				Conclusion: github.String("failure"),
+				Status:     github.String("completed"),
+				Repository: &github.Repository{FullName: github.String("otto-wagner/github-observer")},
+			},
+		}
+
+		successRun := github.WorkflowRunEvent{
+			WorkflowRun: &github.WorkflowRun{
+				ID:         github.Int64(1),
+				RunNumber:  github.Int(1),
+				Conclusion: github.String("success"),
+				Repository: &github.Repository{FullName: github.String("otto-wagner/github-observer")},
+			},
+		}
+
+		// when
+		exec.EventWorkflowRun(run)
+
+		// then
+		assert.Equal(t, 1, testutil.CollectAndCount(exec.workflowRun))
+		// []string{"repository_full_name", "workflow_name", "workflow_run_id", "run_number","state", "conclusion"})
+		assert.Greater(t, testutil.ToFloat64(exec.workflowRun.WithLabelValues(
+			run.GetWorkflowRun().GetRepository().GetFullName(),
+			run.GetWorkflowRun().GetName(),
+			strconv.FormatInt(run.GetWorkflowRun().GetID(), 10),
+			strconv.Itoa(run.GetWorkflowRun().GetRunNumber()),
+			run.GetWorkflowRun().GetStatus(),
+			run.GetWorkflowRun().GetConclusion(),
+		)), float64(0))
+
+		// when
+		exec.EventWorkflowRun(successRun)
+
+		// then
+		assert.Equal(t, 0, testutil.CollectAndCount(exec.workflowRun))
+	})
+
+}
+
+func TestExecutorPrometheusLastWorkflowRuns(t *testing.T) {
 	t.Run("Should count failed workflow run", func(t *testing.T) {
 		// given
 		repository := core.Repository{Name: "github-observer", Owner: "otto-wagner"}

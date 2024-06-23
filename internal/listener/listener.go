@@ -1,6 +1,7 @@
 package listener
 
 import (
+	"github-observer/internal/core"
 	"github-observer/internal/executor"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
@@ -9,30 +10,44 @@ import (
 )
 
 type IListener interface {
-	Action(*gin.Context)
+	Workflow(*gin.Context)
 	PullRequest(*gin.Context)
 	PullRequestReview(*gin.Context)
 }
 
 type listener struct {
-	executors []executor.IExecutor
+	repositories []core.Repository
+	executors    []executor.IExecutor
 }
 
-func NewListener(executors []executor.IExecutor) IListener {
-	return &listener{executors}
+func NewListener(repositories []core.Repository, executors []executor.IExecutor) IListener {
+	return &listener{repositories, executors}
 }
 
-func (l *listener) Action(c *gin.Context) {
-	var event github.CheckRunEvent
+func (l *listener) Workflow(c *gin.Context) {
+	var event github.WorkflowRunEvent
 	if err := c.BindJSON(&event); err != nil {
-		zap.S().Errorw("Failed to bind EventRun", "error", err)
+		zap.S().Errorw("Failed to bind EventWorkflow", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
+		return
 	}
 
-	for _, e := range l.executors {
-		e.EventRun(event)
+	var repository core.Repository
+	for _, r := range l.repositories {
+		if event.GetRepo().GetName() == r.Name {
+			repository = r
+		}
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
+
+	if event.GetWorkflowRun().GetHeadBranch() == repository.Branch {
+		for _, e := range l.executors {
+			e.EventWorkflowRun(event)
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, gin.H{"message": "Branch ignored"})
 }
 
 func (l *listener) PullRequest(c *gin.Context) {
@@ -40,12 +55,13 @@ func (l *listener) PullRequest(c *gin.Context) {
 	if err := c.BindJSON(&event); err != nil {
 		zap.S().Errorw("Failed to bind EventPullRequest", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
+		return
 	}
 
 	for _, e := range l.executors {
 		e.EventPullRequest(event)
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
+	c.JSON(http.StatusOK, gin.H{"message": "Pullrequest received"})
 }
 
 func (l *listener) PullRequestReview(c *gin.Context) {
@@ -53,10 +69,11 @@ func (l *listener) PullRequestReview(c *gin.Context) {
 	if err := c.BindJSON(&event); err != nil {
 		zap.S().Errorw("Failed to bind EventPullRequestReview", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
+		return
 	}
 
 	for _, e := range l.executors {
 		e.EventPullRequestReview(event)
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Workflow received"})
+	c.JSON(http.StatusOK, gin.H{"message": "Pullrequest review received"})
 }

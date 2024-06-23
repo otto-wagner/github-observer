@@ -25,8 +25,8 @@ func (_m *IExecutor) EventPullRequestReview(_a0 github.PullRequestReviewEvent) {
 	_m.Called(_a0)
 }
 
-// EventRun provides a mock function with given fields: _a0
-func (_m *IExecutor) EventRun(_a0 github.CheckRunEvent) {
+// EventWorkflowRun provides a mock function with given fields: _a0
+func (_m *IExecutor) EventWorkflowRun(_a0 github.WorkflowRunEvent) {
 	_m.Called(_a0)
 }
 

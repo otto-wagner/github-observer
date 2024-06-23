@@ -13,11 +13,6 @@ type IListener struct {
 	mock.Mock
 }
 
-// Action provides a mock function with given fields: _a0
-func (_m *IListener) Action(_a0 *gin.Context) {
-	_m.Called(_a0)
-}
-
 // PullRequest provides a mock function with given fields: _a0
 func (_m *IListener) PullRequest(_a0 *gin.Context) {
 	_m.Called(_a0)
@@ -25,6 +20,11 @@ func (_m *IListener) PullRequest(_a0 *gin.Context) {
 
 // PullRequestReview provides a mock function with given fields: _a0
 func (_m *IListener) PullRequestReview(_a0 *gin.Context) {
+	_m.Called(_a0)
+}
+
+// Workflow provides a mock function with given fields: _a0
+func (_m *IListener) Workflow(_a0 *gin.Context) {
 	_m.Called(_a0)
 }
 

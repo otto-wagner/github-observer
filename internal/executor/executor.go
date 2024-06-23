@@ -6,9 +6,9 @@ import (
 )
 
 type IExecutor interface {
-	EventRun(github.CheckRunEvent)
 	EventPullRequest(github.PullRequestEvent)
 	EventPullRequestReview(github.PullRequestReviewEvent)
+	EventWorkflowRun(github.WorkflowRunEvent)
 	LastWorkflows(core.Repository, []*github.WorkflowRun)
 	PullRequests(core.Repository, []*github.PullRequest)
 }

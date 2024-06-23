@@ -6,11 +6,11 @@ To use this webhook you need to create a webhook in your GitHub repository.
 - Go to Settings
 - Go to Webhooks
 - Click on Add webhook
-    - listen action
-        - Set the Payload URL to your endpoint (e.g. https://{domain}/listen/action)
+    - listen workflow_run
+        - Set the Payload URL to your endpoint (e.g. https://{domain}/listen/workflow)
         - content type: application/json
         - Let me select individual events
-        - Select Check runs
+        - Select Workflow runs
     - listen pullrequest
         - Set the Payload URL to your endpoint (e.g. https://{domain}/listen/pullrequest)
         - content type: application/json

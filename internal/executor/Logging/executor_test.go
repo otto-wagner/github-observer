@@ -11,36 +11,41 @@ import (
 	"time"
 )
 
-func TestExecutorLoggingEventRun(t *testing.T) {
+func TestExecutorLoggingEventWorkflowRun(t *testing.T) {
 
-	t.Run("Should log run event", func(t *testing.T) {
+	t.Run("Should log workflow run event", func(t *testing.T) {
 		// given
 		logs := logger.MockedLogger()
-
 		now := time.Now()
-		event := github.CheckRunEvent{
-			Repo: &github.Repository{
-				Name:    github.String("github-observer"),
-				HTMLURL: github.String("https://github.com/otto-wagner/github-observer"),
-			},
-			Action: github.String("completed"),
-			CheckRun: &github.CheckRun{
-				Name:        github.String("Analyze (go)"),
-				HTMLURL:     github.String("https://github.com/otto-wagner/github-observer/actions/runs/8589035842/job/23534635896"),
-				Status:      github.String("completed"),
-				Conclusion:  github.String("success"),
-				StartedAt:   &github.Timestamp{Time: now},
-				CompletedAt: &github.Timestamp{Time: now},
+		event := github.WorkflowRunEvent{
+			WorkflowRun: &github.WorkflowRun{
+				WorkflowID:   github.Int64(1),
+				RunNumber:    github.Int(1),
+				Name:         github.String("WorkflowName"),
+				HeadBranch:   github.String("main"),
+				Event:        github.String("Run"),
+				DisplayTitle: github.String("feat: add prometheus and grafana in docker-compose"),
+				Status:       github.String("completed"),
+				Conclusion:   github.String("failure"),
+				HTMLURL:      github.String("anyUrl"),
+				Actor:        &github.User{Login: github.String("otto-wagner")},
+				CreatedAt:    &github.Timestamp{Time: now},
+				UpdatedAt:    &github.Timestamp{Time: now},
+				HeadCommit:   &github.HeadCommit{Message: github.String("chore: test")},
+				Repository: &github.Repository{
+					FullName: github.String("otto-wagner/github-observer"),
+					HTMLURL:  github.String("repoUrl"),
+				},
 			},
 		}
 
 		// when
-		NewExecutor(nil).EventRun(event)
+		NewExecutor(nil).EventWorkflowRun(event)
 
 		// then
 		assert.Contains(t, logs.All()[0].Message, "Event")
-		assert.Contains(t, logs.All()[0].Context[0].Key, "Run")
-		assert.Equal(t, logs.All()[0].Context[0].Interface, core.ConvertToGitAction(event))
+		assert.Contains(t, logs.All()[0].Context[0].Key, "WorkflowRun")
+		assert.Equal(t, logs.All()[0].Context[0].Interface, core.ConvertToWorkflowRun(event))
 	})
 }
 

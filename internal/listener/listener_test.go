@@ -4,6 +4,7 @@ package listener
 
 import (
 	"encoding/json"
+	"github-observer/internal/core"
 	"github-observer/internal/executor"
 	internalMocks "github-observer/internal/mocks"
 	"github-observer/mocks"
@@ -14,18 +15,28 @@ import (
 	"testing"
 )
 
-func TestListenAction(t *testing.T) {
-	t.Run("Should listen action", func(t *testing.T) {
-		// given
-		checkRunEvent := github.CheckRunEvent{}
-		mockedExecutor := new(internalMocks.IExecutor)
-		mockedExecutor.On("EventRun", checkRunEvent)
+func TestListenWorkflow(t *testing.T) {
+	repository := core.Repository{Owner: "otto-wagner", Name: "github-observer", Branch: "main"}
 
-		event, _ := json.Marshal(checkRunEvent)
+	t.Run("Should listen workflow", func(t *testing.T) {
+		// given
+		workflowRunEvent := github.WorkflowRunEvent{
+			WorkflowRun: &github.WorkflowRun{
+				HeadBranch: github.String("main"),
+			},
+			Repo: &github.Repository{
+				Name: github.String("github-observer"),
+			},
+		}
+
+		mockedExecutor := new(internalMocks.IExecutor)
+		mockedExecutor.On("EventWorkflowRun", workflowRunEvent)
+
+		event, _ := json.Marshal(workflowRunEvent)
 		context, recorder := mocks.MockContext("", string(event))
 
 		// when
-		NewListener([]executor.IExecutor{mockedExecutor}).Action(context)
+		NewListener([]core.Repository{repository}, []executor.IExecutor{mockedExecutor}).Workflow(context)
 
 		// then
 		var expectedResponse gin.H
@@ -36,9 +47,37 @@ func TestListenAction(t *testing.T) {
 		assert.Equal(t, gin.H{"message": "Workflow received"}, expectedResponse)
 		mockedExecutor.AssertExpectations(t)
 	})
+
+	t.Run("Should not listen workflows in other branch", func(t *testing.T) {
+		// given
+		workflowRunEvent := github.WorkflowRunEvent{
+			WorkflowRun: &github.WorkflowRun{
+				HeadBranch: github.String("another"),
+			},
+			Repo: &github.Repository{
+				Name: github.String("github-observer"),
+			},
+		}
+
+		event, _ := json.Marshal(workflowRunEvent)
+		context, recorder := mocks.MockContext("", string(event))
+
+		// when
+		NewListener([]core.Repository{repository}, []executor.IExecutor{nil}).Workflow(context)
+
+		// then
+		var expectedResponse gin.H
+		err := json.Unmarshal(recorder.Body.Bytes(), &expectedResponse)
+		assert.NoError(t, err)
+
+		assert.Equal(t, http.StatusAccepted, recorder.Code)
+		assert.Equal(t, gin.H{"message": "Branch ignored"}, expectedResponse)
+	})
+
 }
 
 func TestListenPullRequest(t *testing.T) {
+	repository := core.Repository{Owner: "otto-wagner", Name: "github-observer", Branch: "main"}
 
 	t.Run("Should listen pull request", func(t *testing.T) {
 		// given
@@ -50,7 +89,7 @@ func TestListenPullRequest(t *testing.T) {
 		context, recorder := mocks.MockContext("", string(event))
 
 		// when
-		NewListener([]executor.IExecutor{mockedExecutor}).PullRequest(context)
+		NewListener([]core.Repository{repository}, []executor.IExecutor{mockedExecutor}).PullRequest(context)
 
 		// then
 		var expectedResponse gin.H
@@ -58,13 +97,14 @@ func TestListenPullRequest(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, http.StatusOK, recorder.Code)
-		assert.Equal(t, gin.H{"message": "Workflow received"}, expectedResponse)
+		assert.Equal(t, gin.H{"message": "Pullrequest received"}, expectedResponse)
 		mockedExecutor.AssertExpectations(t)
 	})
 
 }
 
 func TestListenPullRequestReview(t *testing.T) {
+	repository := core.Repository{Owner: "otto-wagner", Name: "github-observer", Branch: "main"}
 
 	t.Run("Should listen pull request review", func(t *testing.T) {
 		// given
@@ -76,7 +116,7 @@ func TestListenPullRequestReview(t *testing.T) {
 		context, recorder := mocks.MockContext("", string(event))
 
 		// when
-		NewListener([]executor.IExecutor{mockedExecutor}).PullRequestReview(context)
+		NewListener([]core.Repository{repository}, []executor.IExecutor{mockedExecutor}).PullRequestReview(context)
 
 		// then
 		var expectedResponse gin.H
@@ -84,7 +124,7 @@ func TestListenPullRequestReview(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, http.StatusOK, recorder.Code)
-		assert.Equal(t, gin.H{"message": "Workflow received"}, expectedResponse)
+		assert.Equal(t, gin.H{"message": "Pullrequest review received"}, expectedResponse)
 		mockedExecutor.AssertExpectations(t)
 	})
 

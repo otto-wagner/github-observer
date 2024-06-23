@@ -9,47 +9,30 @@ import (
 )
 
 type executor struct {
-	eventRun         *prometheus.CounterVec
 	eventPullRequest *prometheus.CounterVec
 	workflowRun      *prometheus.GaugeVec
 	pullRequest      *prometheus.GaugeVec
 }
 
 func NewExecutor() e.IExecutor {
-	eventRun := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "event_run", Help: "Number of action requests processed"},
-		[]string{"action", "check_run_id", "check_run_name", "check_run_status", "check_run_conclusion", "repository_full_name"})
-
 	eventPullRequest := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "event_pull_request", Help: "Number of pull requests processed"},
 		[]string{"action", "pull_request_title", "pull_request_state", "repository_full_name"})
 
 	workflowRun := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "latest_workflows", Help: "Failed workflow runs"},
-		[]string{"repository_full_name", "workflow_name", "state", "conclusion"})
+		[]string{"repository_full_name", "workflow_name", "workflow_run_id", "run_number", "state", "conclusion"})
 
 	pullRequest := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "pull_request_sum", Help: "Number of pull requests"},
 		[]string{"repository_full_name"})
 
-	prometheus.MustRegister(eventRun, eventPullRequest, workflowRun, pullRequest)
-	return &executor{eventRun, eventPullRequest, workflowRun, pullRequest}
-}
-
-func (e *executor) EventRun(event github.CheckRunEvent) {
-	action := core.ConvertToGitAction(event)
-	e.eventRun.With(map[string]string{
-		"action":               action.Action,
-		"check_run_id":         strconv.FormatInt(action.CheckRun.Id, 10),
-		"check_run_name":       action.CheckRun.Name,
-		"check_run_status":     action.CheckRun.Status,
-		"check_run_conclusion": action.CheckRun.Conclusion,
-		"repository_full_name": action.Repository.FullName,
-	}).Inc()
-	return
+	prometheus.MustRegister(eventPullRequest, workflowRun, pullRequest)
+	return &executor{eventPullRequest, workflowRun, pullRequest}
 }
 
 func (e *executor) EventPullRequest(event github.PullRequestEvent) {
+	// todo: delete old pull requests
 	pr := core.ConvertPREToGitPullRequest(event)
 	e.eventPullRequest.With(map[string]string{
 		"action":               pr.Action,
@@ -65,6 +48,26 @@ func (e *executor) EventPullRequestReview(github.PullRequestReviewEvent) {
 	return
 }
 
+func (e *executor) EventWorkflowRun(run github.WorkflowRunEvent) {
+	flow := core.ConvertToWorkflowRun(run).WorkflowRun
+	e.workflowRun.DeletePartialMatch(map[string]string{
+		"repository_full_name": flow.Repository.FullName,
+		"workflow_run_id":      strconv.FormatInt(flow.WorkflowRunId, 10),
+		"run_number":           strconv.Itoa(flow.RunNumber),
+	})
+
+	if flow.Conclusion != "success" {
+		e.workflowRun.With(map[string]string{
+			"repository_full_name": flow.Repository.FullName,
+			"workflow_name":        flow.Name,
+			"workflow_run_id":      strconv.FormatInt(flow.WorkflowRunId, 10),
+			"run_number":           strconv.Itoa(flow.RunNumber),
+			"state":                flow.Status,
+			"conclusion":           flow.Conclusion,
+		}).Set(1)
+	}
+}
+
 func (e *executor) LastWorkflows(repository core.Repository, workflows []*github.WorkflowRun) {
 	e.workflowRun.DeletePartialMatch(map[string]string{"repository_full_name": repository.Owner + "/" + repository.Name})
 	for _, run := range workflows {
@@ -73,6 +76,8 @@ func (e *executor) LastWorkflows(repository core.Repository, workflows []*github
 			e.workflowRun.With(map[string]string{
 				"repository_full_name": flow.Repository.FullName,
 				"workflow_name":        flow.Name,
+				"workflow_run_id":      strconv.FormatInt(flow.WorkflowRunId, 10),
+				"run_number":           strconv.Itoa(flow.RunNumber),
 				"state":                flow.Status,
 				"conclusion":           flow.Conclusion,
 			}).Set(1)

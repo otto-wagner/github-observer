@@ -4,6 +4,7 @@ package router
 
 import (
 	"encoding/json"
+	"github-observer/internal/core"
 	"github-observer/internal/executor"
 	eLogging "github-observer/internal/executor/Logging"
 	ePrometheus "github-observer/internal/executor/Prometheus"
@@ -18,8 +19,9 @@ import (
 
 func TestRouterIntegration(t *testing.T) {
 	engine := gin.New()
-	executors := []executor.IExecutor{eLogging.NewExecutor(nil), ePrometheus.NewExecutor()}
-	listener := l.NewListener(executors)
+	repositories := []core.Repository{{Owner: "otto-wagner", Name: "github-observer", Branch: "main"}}
+	executors := []executor.IExecutor{eLogging.NewExecutor(eLogging.NewMemory()), ePrometheus.NewExecutor()}
+	listener := l.NewListener(repositories, executors)
 
 	InitializeRoutes(engine, listener)
 
@@ -33,11 +35,11 @@ func TestRouterIntegration(t *testing.T) {
 		assert.Equal(t, "{\"health\":\"ok\"}", response.Body.String())
 	})
 
-	t.Run("Should listen action", func(t *testing.T) {
+	t.Run("Should listen workflows", func(t *testing.T) {
 		// given
-		event, _ := json.Marshal(github.CheckRunEvent{
-			CheckRun: &github.CheckRun{
-				Name: github.String("Analyze (go)"),
+		event, _ := json.Marshal(github.WorkflowRunEvent{
+			WorkflowRun: &github.WorkflowRun{
+				HeadBranch: github.String("main"),
 			},
 			Repo: &github.Repository{
 				Name: github.String("github-observer"),
@@ -45,7 +47,7 @@ func TestRouterIntegration(t *testing.T) {
 		})
 
 		// when
-		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/action", string(event))
+		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/workflow", string(event))
 
 		// then
 		assert.Equal(t, http.StatusOK, response.Code)
@@ -68,7 +70,7 @@ func TestRouterIntegration(t *testing.T) {
 
 		// then
 		assert.Equal(t, http.StatusOK, response.Code)
-		assert.Equal(t, "{\"message\":\"Workflow received\"}", response.Body.String())
+		assert.Equal(t, "{\"message\":\"Pullrequest received\"}", response.Body.String())
 	})
 
 	t.Run("Should listen pull request review", func(t *testing.T) {
@@ -90,6 +92,6 @@ func TestRouterIntegration(t *testing.T) {
 
 		// then
 		assert.Equal(t, http.StatusOK, response.Code)
-		assert.Equal(t, "{\"message\":\"Workflow received\"}", response.Body.String())
+		assert.Equal(t, "{\"message\":\"Pullrequest review received\"}", response.Body.String())
 	})
 }

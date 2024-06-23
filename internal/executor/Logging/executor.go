@@ -15,11 +15,6 @@ func NewExecutor(m IMemory) e.IExecutor {
 	return &executor{m}
 }
 
-func (e *executor) EventRun(runEvent github.CheckRunEvent) {
-	zap.S().Infow("Event", "Run", core.ConvertToGitAction(runEvent))
-	return
-}
-
 func (e *executor) EventPullRequest(event github.PullRequestEvent) {
 	zap.S().Infow("Event", "PullRequest", core.ConvertPREToGitPullRequest(event))
 	return
@@ -27,6 +22,11 @@ func (e *executor) EventPullRequest(event github.PullRequestEvent) {
 
 func (e *executor) EventPullRequestReview(event github.PullRequestReviewEvent) {
 	zap.S().Infow("Event", "PullRequestReview", core.ConvertToGitPullRequestReview(event))
+	return
+}
+
+func (e *executor) EventWorkflowRun(event github.WorkflowRunEvent) {
+	zap.S().Infow("Event", "WorkflowRun", core.ConvertToWorkflowRun(event))
 	return
 }
 

@@ -85,7 +85,7 @@ func initExecutor() {
 }
 
 func initListener() {
-	listener = l.NewListener(executors)
+	listener = l.NewListener(GetRepositories(), executors)
 }
 
 func initWatcher() {
@@ -95,25 +95,28 @@ func initWatcher() {
 			zap.S().Fatal("no GITHUB_TOKEN")
 		}
 
-		var repositoriesConfig []config.RepositoryConfig
-		err := viper.UnmarshalKey("app.repositories", &repositoriesConfig)
-		if err != nil {
-			zap.S().Fatalw("failed to unmarshal app.repositories", "error", err)
-		}
-
-		var repositories []core.Repository
-		for _, repo := range repositoriesConfig {
-			coreRepo := core.Repository{
-				Name:   repo.Name,
-				Owner:  repo.Owner,
-				Branch: repo.Branch,
-			}
-			repositories = append(repositories, coreRepo)
-		}
 		client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})))
-
-		w.NewWatcher(token, client, repositories, executors).Watch()
+		w.NewWatcher(token, client, GetRepositories(), executors).Watch()
 	}
+}
+
+func GetRepositories() []core.Repository {
+	var repositoriesConfig []config.RepositoryConfig
+	err := viper.UnmarshalKey("app.repositories", &repositoriesConfig)
+	if err != nil {
+		zap.S().Fatalw("failed to unmarshal app.repositories", "error", err)
+	}
+
+	var repositories []core.Repository
+	for _, repo := range repositoriesConfig {
+		coreRepo := core.Repository{
+			Name:   repo.Name,
+			Owner:  repo.Owner,
+			Branch: repo.Branch,
+		}
+		repositories = append(repositories, coreRepo)
+	}
+	return repositories
 }
 
 func initEngine() {
