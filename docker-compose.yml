@@ -1,5 +1,6 @@
 services:
   github-observer:
+#    image: ghcr.io/otto-wagner/github-observer:latest
     build:
       context: .
       dockerfile: Dockerfile
