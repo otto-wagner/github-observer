@@ -5,7 +5,7 @@ import (
 	"github-observer/internal/executor"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
-	"go.uber.org/zap"
+	"log/slog"
 	"net/http"
 )
 
@@ -27,7 +27,7 @@ func NewListener(repositories []core.Repository, executors []executor.IExecutor)
 func (l *listener) Workflow(c *gin.Context) {
 	var event github.WorkflowRunEvent
 	if err := c.BindJSON(&event); err != nil {
-		zap.S().Errorw("Failed to bind EventWorkflow", "error", err)
+		slog.Error("Failed to bind EventWorkflow", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 		return
 	}
@@ -53,7 +53,7 @@ func (l *listener) Workflow(c *gin.Context) {
 func (l *listener) PullRequest(c *gin.Context) {
 	var event github.PullRequestEvent
 	if err := c.BindJSON(&event); err != nil {
-		zap.S().Errorw("Failed to bind EventPullRequest", "error", err)
+		slog.Error("Failed to bind EventPullRequest", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 		return
 	}
@@ -67,7 +67,7 @@ func (l *listener) PullRequest(c *gin.Context) {
 func (l *listener) PullRequestReview(c *gin.Context) {
 	var event github.PullRequestReviewEvent
 	if err := c.BindJSON(&event); err != nil {
-		zap.S().Errorw("Failed to bind EventPullRequestReview", "error", err)
+		slog.Error("Failed to bind EventPullRequestReview", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 		return
 	}

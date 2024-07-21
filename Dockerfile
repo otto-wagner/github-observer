@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN go build -a -o github-observer main.go
+RUN go build -a -o observer cmd/main.go
 
 FROM alpine:3.19.1
 
@@ -13,12 +13,13 @@ ARG USER_UID=1000
 ARG GITHUB_TOKEN
 ENV GITHUB_TOKEN=$GITHUB_TOKEN
 
-RUN touch github_observer.log && chown $USER_UID:$USER_UID github_observer.log
+RUN touch executor.log && chown $USER_UID:$USER_UID executor.log
+RUN touch watcher.log && chown $USER_UID:$USER_UID watcher.log
 
 RUN adduser -u $USER_UID -D $USERNAME
 USER $USERNAME
 
-COPY --from=build /app/github-observer /github-observer
+COPY --from=build /app/observer /observer
 COPY --from=build /app/conf /conf
 
-ENTRYPOINT ["/github-observer", "server"]
+ENTRYPOINT ["/observer", "server", "run"]

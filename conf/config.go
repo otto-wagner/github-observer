@@ -1,8 +1,9 @@
-package config
+package conf
 
 import (
 	"errors"
-	"go.uber.org/zap"
+	"log/slog"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -10,13 +11,23 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Executor string
+
+const (
+	Logging      Executor = "logging"
+	Prometheus   Executor = "prometheus"
+	WatcherFile  string   = "watcher.log"
+	ExecutorFile string   = "executor.log"
+)
+
 type AppConfig struct {
 	ListenAddress  string             `json:"listenAddress" validate:"hostname_port"`
 	TrustedProxies []string           `json:"trustedProxies"`
 	Mode           string             `json:"mode" validate:"omitempty,oneof=release debug test"`
-	Executors      []string           `json:"executors" validate:"omitempty"`
+	Executors      []Executor         `json:"executors"`
 	Watcher        bool               `json:"watcher"`
-	Repositories   []RepositoryConfig `json:"repositories"`
+	Repositories   []RepositoryConfig `json:"repositories" validate:"required"`
+	Logs           []string           `json:"logs"`
 }
 
 type RepositoryConfig struct {
@@ -35,9 +46,7 @@ type Config struct {
 	//Ssl SslConfig `json:"ssl"`
 }
 
-func InitConfig(cfgFile string) (Config, error) {
-	var c Config
-
+func InitConfig(cfgFile string) (c Config, err error) {
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -45,7 +54,8 @@ func InitConfig(cfgFile string) (Config, error) {
 		// Search config in default location conf/common.json
 		configPath, err := filepath.Abs("../conf")
 		if err != nil {
-			zap.S().Fatalw("failed to load config - filepath", "error", err)
+			slog.Error("failed to get absolute path", "error", err)
+			os.Exit(1)
 		}
 		viper.AddConfigPath(configPath)
 		viper.SetConfigName("common")
@@ -62,11 +72,11 @@ func InitConfig(cfgFile string) (Config, error) {
 		}
 	}
 
-	err := viper.Unmarshal(&c)
+	err = viper.Unmarshal(&c)
 	if err != nil {
 		return c, err
 	}
-	return c, nil
+	return
 }
 
 func (c Config) Validate() error {

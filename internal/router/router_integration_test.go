@@ -3,6 +3,7 @@
 package router
 
 import (
+	"bytes"
 	"encoding/json"
 	"github-observer/internal/core"
 	"github-observer/internal/executor"
@@ -13,17 +14,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"net/http"
 	"testing"
 )
 
 func TestRouterIntegration(t *testing.T) {
 	engine := gin.New()
+	buf := &bytes.Buffer{}
+	logger := slog.New(slog.NewTextHandler(buf, nil))
 	repositories := []core.Repository{{Owner: "otto-wagner", Name: "github-observer", Branch: "main"}}
-	executors := []executor.IExecutor{eLogging.NewExecutor(eLogging.NewMemory()), ePrometheus.NewExecutor()}
+	executors := []executor.IExecutor{eLogging.NewExecutor(eLogging.NewMemory(), logger), ePrometheus.NewExecutor()}
 	listener := l.NewListener(repositories, executors)
 
-	InitializeRoutes(engine, listener)
+	InitializeRoutes(engine, listener, false)
 
 	t.Run("Should return ok", func(t *testing.T) {
 		// given

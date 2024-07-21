@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github-observer/conf"
 	"github-observer/internal/listener"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ import (
 	"os"
 )
 
-func InitializeRoutes(e *gin.Engine, l listener.IListener) {
+func InitializeRoutes(e *gin.Engine, l listener.IListener, watcherEnabled bool) {
 	//err = e.SetTrustedProxies(configuration.TrustedProxies)
 	//if err != nil {
 	//	return
@@ -28,8 +29,8 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener) {
 	appExecutors := viper.GetStringSlice("app.executors")
 	for _, executor := range appExecutors {
 		if executor == "logging" {
-			e.GET("/logs", func(c *gin.Context) {
-				data, err := ReadLogData()
+			e.GET("/logs/executor", func(c *gin.Context) {
+				data, err := ReadLogData(conf.ExecutorFile)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -40,6 +41,17 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener) {
 		if executor == "prometheus" {
 			e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 		}
+	}
+
+	if watcherEnabled {
+		e.GET("/logs/watcher", func(c *gin.Context) {
+			data, err := ReadLogData(conf.WatcherFile)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.String(http.StatusOK, data)
+		})
 	}
 
 	if l != nil {
@@ -59,8 +71,8 @@ func addCorsMiddleware(engine *gin.Engine) {
 	engine.Use(cors.New(configCors))
 }
 
-func ReadLogData() (string, error) {
-	data, err := os.ReadFile("github_observer.log")
+func ReadLogData(filename string) (string, error) {
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		log.Printf("Error reading log file: %v", err)
 		return "", err

@@ -4,29 +4,30 @@ import (
 	"github-observer/internal/core"
 	e "github-observer/internal/executor"
 	"github.com/google/go-github/v61/github"
-	"go.uber.org/zap"
+	"log/slog"
 )
 
 type executor struct {
 	memory IMemory
+	logger *slog.Logger
 }
 
-func NewExecutor(m IMemory) e.IExecutor {
-	return &executor{m}
+func NewExecutor(m IMemory, logger *slog.Logger) e.IExecutor {
+	return &executor{m, logger}
 }
 
 func (e *executor) EventPullRequest(event github.PullRequestEvent) {
-	zap.S().Infow("Event", "PullRequest", core.ConvertPREToGitPullRequest(event))
+	e.logger.Info("Event", "PullRequest", core.ConvertPREToGitPullRequest(event))
 	return
 }
 
 func (e *executor) EventPullRequestReview(event github.PullRequestReviewEvent) {
-	zap.S().Infow("Event", "PullRequestReview", core.ConvertToGitPullRequestReview(event))
+	e.logger.Info("Event", "PullRequestReview", core.ConvertToGitPullRequestReview(event))
 	return
 }
 
 func (e *executor) EventWorkflowRun(event github.WorkflowRunEvent) {
-	zap.S().Infow("Event", "WorkflowRun", core.ConvertToWorkflowRun(event))
+	e.logger.Info("Event", "WorkflowRun", core.ConvertToWorkflowRun(event))
 	return
 }
 
@@ -38,22 +39,22 @@ func (e *executor) LastWorkflows(_ core.Repository, workflowRuns []*github.Workf
 		if !exists {
 			err := e.memory.StoreLastRepositoryWorkflow(workflow)
 			if err != nil {
-				zap.S().Errorw("WorkflowRun", "Action", workflow, "Error", err)
+				e.logger.Error("WorkflowRun", "Action", workflow, "Error", err)
 				continue
 			}
 			if workflow.Conclusion != "success" {
-				zap.S().Infow("WorkflowRun", "Action", workflow)
+				e.logger.Info("WorkflowRun", "Action", workflow)
 			}
 			continue
 		}
 		if workflow.RunNumber > memWorkflow.RunNumber {
 			err := e.memory.StoreLastRepositoryWorkflow(workflow)
 			if err != nil {
-				zap.S().Errorw("WorkflowRun", "Action", workflow, "Error", err)
+				e.logger.Error("WorkflowRun", "Action", workflow, "Error", err)
 				continue
 			}
 			if workflow.Conclusion != "success" {
-				zap.S().Infow("WorkflowRun", "Action", workflow)
+				e.logger.Info("WorkflowRun", "Action", workflow)
 			}
 			continue
 		}
@@ -75,7 +76,7 @@ func (e *executor) PullRequests(repository core.Repository, openPullRequests []*
 
 		_, exists := e.memory.GetPullRequest(repository.Name, pr)
 		if !exists {
-			zap.S().Infow("PullRequest", "PullRequest", pr)
+			e.logger.Info("PullRequest", "PullRequest", pr)
 		}
 	}
 

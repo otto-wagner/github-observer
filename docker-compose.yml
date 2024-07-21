@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   github-observer:
     build:
@@ -42,25 +41,25 @@ services:
     depends_on:
       - prometheus
 
-#  ngrok:
-#    image: ngrok/ngrok:latest
-#    ports:
-#      - "4040:4040"
-#    networks:
-#      - github-observer
-#    command:
-#      - "start"
-#      - "--all"
-#      - "--config"
-#      - "/etc/ngrok.yml"
-#    environment:
-#      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
-#    volumes:
-#      - ./ngrok/etc/ngrok.yml:/etc/ngrok.yml
-#    depends_on:
-#        - github-observer
-#        - prometheus
-#        - grafana
+  ngrok:
+    image: ngrok/ngrok:latest
+    ports:
+      - "4040:4040"
+    networks:
+      - github-observer
+    command:
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok.yml"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    volumes:
+      - ./ngrok/etc/ngrok.yml:/etc/ngrok.yml
+    depends_on:
+        - github-observer
+        - prometheus
+        - grafana
 
 volumes:
   grafana_data:

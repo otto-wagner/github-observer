@@ -13,16 +13,13 @@ test/unit:
 test/integration:
 	go test ./... -tags=integration -coverprofile=coverage.out
 
-mock: mock/setup mock/internal mock/pkg
+mock: mock/setup mock/internal
 
 mock/setup:
-	go install github.com/vektra/mockery/v2@v2.40.3
+	go install github.com/vektra/mockery/v2@v2.43.2
 
 mock/internal:
 	cd ./internal && mockery --all
-
-mock/pkg:
-	cd ./pkg && mockery --all
 
 build:
 	go build -o app/github-observer .

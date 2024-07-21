@@ -4,6 +4,10 @@
     "trustedProxies": null,
     "mode": "debug",
     "watcher": true,
+    "logs": [
+      "executor",
+      "watcher"
+    ],
     "executors": [
       "logging",
       "prometheus"
