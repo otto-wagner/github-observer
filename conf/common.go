@@ -17,6 +17,7 @@ const (
 	Logging      Executor = "logging"
 	Prometheus   Executor = "prometheus"
 	WatcherFile  string   = "watcher.log"
+	ListenerFile string   = "listener.log"
 	ExecutorFile string   = "executor.log"
 )
 
@@ -30,12 +31,6 @@ type AppConfig struct {
 	Logs           []string           `json:"logs"`
 }
 
-type RepositoryConfig struct {
-	Name   string `json:"name"`
-	Owner  string `json:"owner"`
-	Branch string `json:"branch"`
-}
-
 type SslConfig struct {
 	Cert string `json:"cert" validate:"required,file"`
 	Key  string `json:"key" validate:"required,file"`
@@ -46,7 +41,7 @@ type Config struct {
 	//Ssl SslConfig `json:"ssl"`
 }
 
-func InitConfig(cfgFile string) (c Config, err error) {
+func InitCommon(cfgFile string) (c Config, err error) {
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)

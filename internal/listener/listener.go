@@ -18,16 +18,17 @@ type IListener interface {
 type listener struct {
 	repositories []core.Repository
 	executors    []executor.IExecutor
+	logger       *slog.Logger
 }
 
-func NewListener(repositories []core.Repository, executors []executor.IExecutor) IListener {
-	return &listener{repositories, executors}
+func NewListener(repositories []core.Repository, executors []executor.IExecutor, logger *slog.Logger) IListener {
+	return &listener{repositories, executors, logger}
 }
 
 func (l *listener) Workflow(c *gin.Context) {
 	var event github.WorkflowRunEvent
 	if err := c.BindJSON(&event); err != nil {
-		slog.Error("Failed to bind EventWorkflow", "error", err)
+		l.logger.Error("Failed to bind EventWorkflow", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 		return
 	}
@@ -38,6 +39,13 @@ func (l *listener) Workflow(c *gin.Context) {
 			repository = r
 		}
 	}
+	l.logger.Info("Workflow received",
+		"repository", repository.Name,
+		"workflow", event.GetWorkflowRun().Name,
+		"url", event.GetWorkflowRun().GetHTMLURL(),
+		"status", event.GetWorkflowRun().GetStatus(),
+		"conclusion", event.GetWorkflowRun().GetConclusion(),
+	)
 
 	if event.GetWorkflowRun().GetHeadBranch() == repository.Branch {
 		for _, e := range l.executors {
@@ -53,10 +61,11 @@ func (l *listener) Workflow(c *gin.Context) {
 func (l *listener) PullRequest(c *gin.Context) {
 	var event github.PullRequestEvent
 	if err := c.BindJSON(&event); err != nil {
-		slog.Error("Failed to bind EventPullRequest", "error", err)
+		l.logger.Error("Failed to bind EventPullRequest", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 		return
 	}
+	l.logger.Info("Pullrequest received", "repository", event.GetRepo().GetName(), "pullrequest", event.GetPullRequest().GetTitle(), "url", event.GetPullRequest().GetHTMLURL())
 
 	for _, e := range l.executors {
 		e.EventPullRequest(event)
@@ -67,10 +76,11 @@ func (l *listener) PullRequest(c *gin.Context) {
 func (l *listener) PullRequestReview(c *gin.Context) {
 	var event github.PullRequestReviewEvent
 	if err := c.BindJSON(&event); err != nil {
-		slog.Error("Failed to bind EventPullRequestReview", "error", err)
+		l.logger.Error("Failed to bind EventPullRequestReview", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 		return
 	}
+	l.logger.Info("Pullrequest review received", "repository", event.GetRepo().GetName(), "pullrequest", event.GetPullRequest().GetTitle(), "url", event.GetPullRequest().GetHTMLURL())
 
 	for _, e := range l.executors {
 		e.EventPullRequestReview(event)

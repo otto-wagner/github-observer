@@ -11,7 +11,6 @@ import (
 	"github-observer/internal/router"
 	w "github-observer/internal/watcher"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"github.com/google/go-github/v61/github"
 	"golang.org/x/oauth2"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -20,8 +19,6 @@ import (
 )
 
 func Run(configuration conf.Config) {
-	validationConfiguration(configuration)
-
 	repositories := GetRepositories(configuration)
 	executors := initExecutors(configuration)
 	listener := initListener(repositories, executors)
@@ -32,7 +29,7 @@ func Run(configuration conf.Config) {
 
 	gin.SetMode(configuration.App.Mode)
 	engine := gin.New()
-	router.InitializeRoutes(engine, listener, configuration.App.Watcher)
+	router.InitializeRoutes(engine, listener, configuration)
 
 	err := engine.Run(configuration.App.ListenAddress)
 	if err != nil {
@@ -43,14 +40,15 @@ func Run(configuration conf.Config) {
 }
 
 func initListener(repositories []core.Repository, executors []executor.IExecutor) l.IListener {
-	return l.NewListener(repositories, executors)
+	fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: conf.ListenerFile, MaxSize: 10, MaxAge: 1}, nil))
+	return l.NewListener(repositories, executors, fileLogger)
 }
 
 func initExecutors(configuration conf.Config) (executors []executor.IExecutor) {
 	for _, e := range configuration.App.Executors {
 		switch e {
 		case conf.Logging:
-			fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: "executor.log", MaxSize: 10, MaxAge: 1}, nil))
+			fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: conf.ExecutorFile, MaxSize: 10, MaxAge: 1}, nil))
 			executors = append(executors, Logging.NewExecutor(Logging.NewMemory(), fileLogger))
 		case conf.Prometheus:
 			executors = append(executors, Prometheus.NewExecutor())
@@ -83,24 +81,4 @@ func GetRepositories(configuration conf.Config) []core.Repository {
 		repositories = append(repositories, coreRepo)
 	}
 	return repositories
-}
-
-func validationConfiguration(configuration conf.Config) {
-	err := configuration.Validate()
-	if err != nil {
-		for _, e := range err.(validator.ValidationErrors) {
-			if e.ActualTag() == "required" {
-				slog.Error("Missing required configuration value", "field", e.StructNamespace())
-			} else if e.Param() != "" {
-				slog.Error("Validation failed", "field", e.StructNamespace(), "tag", e.ActualTag(), "param", e.Param())
-			} else {
-				slog.Error("Validation failed", "field", e.StructNamespace(), "tag", e.ActualTag())
-			}
-		}
-		slog.Error("configuration validation failed")
-	}
-
-	slog.Info("start server", "mode", configuration.App.Mode, "listenAddress", configuration.App.ListenAddress,
-		"trustedProxies", configuration.App.TrustedProxies, "executors", configuration.App.Executors,
-		"watcher", configuration.App.Watcher, "repositories", configuration.App.Repositories)
 }

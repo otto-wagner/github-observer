@@ -27,5 +27,5 @@ bin/
 
 *.log
 
-conf/local.json
+conf/local_*
 ngrok/etc/local.yml

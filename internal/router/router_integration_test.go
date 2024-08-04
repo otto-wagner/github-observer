@@ -5,6 +5,7 @@ package router
 import (
 	"bytes"
 	"encoding/json"
+	"github-observer/conf"
 	"github-observer/internal/core"
 	"github-observer/internal/executor"
 	eLogging "github-observer/internal/executor/Logging"
@@ -25,9 +26,9 @@ func TestRouterIntegration(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(buf, nil))
 	repositories := []core.Repository{{Owner: "otto-wagner", Name: "github-observer", Branch: "main"}}
 	executors := []executor.IExecutor{eLogging.NewExecutor(eLogging.NewMemory(), logger), ePrometheus.NewExecutor()}
-	listener := l.NewListener(repositories, executors)
+	listener := l.NewListener(repositories, executors, logger)
 
-	InitializeRoutes(engine, listener, false)
+	InitializeRoutes(engine, listener, conf.Config{})
 
 	t.Run("Should return ok", func(t *testing.T) {
 		// given

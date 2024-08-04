@@ -1,0 +1,39 @@
+{
+  "webhook": {
+    "hooks": [
+      {
+        "payloadUrl": "https://localhost:8443/listen/workflow",
+        "contentType": "json",
+        "secret": "your-secret",
+        "insecureSsl": "1",
+        "events": [
+          "workflow_run"
+        ]
+      },
+      {
+        "payloadUrl": "https://localhost:8443/listen/pullrequest",
+        "contentType": "json",
+        "secret": "your-secret",
+        "insecureSsl": "1",
+        "events": [
+          "pull_request"
+        ]
+      },
+      {
+        "payloadUrl": "https://localhost:8443/listen/pullrequest/review",
+        "contentType": "json",
+        "secret": "your-secret",
+        "insecureSsl": "1",
+        "events": [
+          "pull_request_review"
+        ]
+      }
+    ],
+    "repositories": [
+      {
+        "owner": "otto-wagner",
+        "name": "github-observer"
+      }
+    ]
+  }
+}

@@ -15,6 +15,7 @@ ENV GITHUB_TOKEN=$GITHUB_TOKEN
 
 RUN touch executor.log && chown $USER_UID:$USER_UID executor.log
 RUN touch watcher.log && chown $USER_UID:$USER_UID watcher.log
+RUN touch listener.log && chown $USER_UID:$USER_UID listener.log
 
 RUN adduser -u $USER_UID -D $USERNAME
 USER $USERNAME

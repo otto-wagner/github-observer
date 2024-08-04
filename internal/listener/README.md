@@ -1,7 +1,15 @@
 # Listener
+The listener listens for Actions, Pull Requests and Pull Request review webhooks from GitHub.
 
 ## Github Webhook
-To use this webhook you need to create a webhook in your GitHub repository.
+A webhook is a mechanism that allows an external service to be notified when a specific event occurs.
+
+### Cobra cli
+A webhook cli is implemented to create, list and delete webhooks for a GitHub repository.
+see [webhook/readme.md](../../webhook/README.md)).
+
+### Manually
+You can also create a webhook manually in the GitHub repository.
 - Go to your repository
 - Go to Settings
 - Go to Webhooks

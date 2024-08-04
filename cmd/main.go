@@ -2,6 +2,7 @@ package main
 
 import (
 	server "github-observer/server/cmd"
+	webhook "github-observer/webhook/cmd"
 	"github.com/spf13/cobra"
 	"log/slog"
 	"os"
@@ -31,8 +32,8 @@ func rootCommand() (rootCmd *cobra.Command) {
 			}
 		},
 	}
-
 	rootCmd.AddCommand(server.Server())
+	rootCmd.AddCommand(webhook.WebHook())
 
 	return
 }

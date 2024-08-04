@@ -3,6 +3,7 @@
 package listener
 
 import (
+	"bytes"
 	"encoding/json"
 	"github-observer/internal/core"
 	"github-observer/internal/executor"
@@ -11,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"net/http"
 	"testing"
 )
@@ -20,6 +22,9 @@ func TestListenWorkflow(t *testing.T) {
 
 	t.Run("Should listen workflow", func(t *testing.T) {
 		// given
+		buf := &bytes.Buffer{}
+		logger := slog.New(slog.NewTextHandler(buf, nil))
+
 		workflowRunEvent := github.WorkflowRunEvent{
 			WorkflowRun: &github.WorkflowRun{
 				HeadBranch: github.String("main"),
@@ -36,7 +41,7 @@ func TestListenWorkflow(t *testing.T) {
 		context, recorder := mocks.MockContext("", string(event))
 
 		// when
-		NewListener([]core.Repository{repository}, []executor.IExecutor{mockedExecutor}).Workflow(context)
+		NewListener([]core.Repository{repository}, []executor.IExecutor{mockedExecutor}, logger).Workflow(context)
 
 		// then
 		var expectedResponse gin.H
@@ -50,6 +55,9 @@ func TestListenWorkflow(t *testing.T) {
 
 	t.Run("Should not listen workflows in other branch", func(t *testing.T) {
 		// given
+		buf := &bytes.Buffer{}
+		logger := slog.New(slog.NewTextHandler(buf, nil))
+
 		workflowRunEvent := github.WorkflowRunEvent{
 			WorkflowRun: &github.WorkflowRun{
 				HeadBranch: github.String("another"),
@@ -63,7 +71,7 @@ func TestListenWorkflow(t *testing.T) {
 		context, recorder := mocks.MockContext("", string(event))
 
 		// when
-		NewListener([]core.Repository{repository}, []executor.IExecutor{nil}).Workflow(context)
+		NewListener([]core.Repository{repository}, []executor.IExecutor{nil}, logger).Workflow(context)
 
 		// then
 		var expectedResponse gin.H
@@ -81,6 +89,9 @@ func TestListenPullRequest(t *testing.T) {
 
 	t.Run("Should listen pull request", func(t *testing.T) {
 		// given
+		buf := &bytes.Buffer{}
+		logger := slog.New(slog.NewTextHandler(buf, nil))
+
 		checkRunEvent := github.PullRequestEvent{}
 		mockedExecutor := new(internalMocks.IExecutor)
 		mockedExecutor.On("EventPullRequest", checkRunEvent)
@@ -89,7 +100,7 @@ func TestListenPullRequest(t *testing.T) {
 		context, recorder := mocks.MockContext("", string(event))
 
 		// when
-		NewListener([]core.Repository{repository}, []executor.IExecutor{mockedExecutor}).PullRequest(context)
+		NewListener([]core.Repository{repository}, []executor.IExecutor{mockedExecutor}, logger).PullRequest(context)
 
 		// then
 		var expectedResponse gin.H
@@ -108,6 +119,9 @@ func TestListenPullRequestReview(t *testing.T) {
 
 	t.Run("Should listen pull request review", func(t *testing.T) {
 		// given
+		buf := &bytes.Buffer{}
+		logger := slog.New(slog.NewTextHandler(buf, nil))
+
 		pullRequestReviewEvent := github.PullRequestReviewEvent{}
 		mockedExecutor := new(internalMocks.IExecutor)
 		mockedExecutor.On("EventPullRequestReview", pullRequestReviewEvent)
@@ -116,7 +130,7 @@ func TestListenPullRequestReview(t *testing.T) {
 		context, recorder := mocks.MockContext("", string(event))
 
 		// when
-		NewListener([]core.Repository{repository}, []executor.IExecutor{mockedExecutor}).PullRequestReview(context)
+		NewListener([]core.Repository{repository}, []executor.IExecutor{mockedExecutor}, logger).PullRequestReview(context)
 
 		// then
 		var expectedResponse gin.H

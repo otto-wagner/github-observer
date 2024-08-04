@@ -6,14 +6,13 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
 	"os"
 )
 
-func InitializeRoutes(e *gin.Engine, l listener.IListener, watcherEnabled bool) {
+func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.Config) {
 	//err = e.SetTrustedProxies(configuration.TrustedProxies)
 	//if err != nil {
 	//	return
@@ -26,11 +25,43 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener, watcherEnabled bool) 
 		c.JSON(http.StatusOK, gin.H{"health": "ok"})
 	})
 
-	appExecutors := viper.GetStringSlice("app.executors")
-	for _, executor := range appExecutors {
+	var loggingExecutor bool
+	for _, executor := range config.App.Executors {
+		if executor == "prometheus" {
+			e.GET("/metrics", gin.WrapH(promhttp.Handler()))
+			break
+		}
 		if executor == "logging" {
-			e.GET("/logs/executor", func(c *gin.Context) {
-				data, err := ReadLogData(conf.ExecutorFile)
+			loggingExecutor = true
+		}
+	}
+
+	logsGroup := e.Group("/logs")
+	for _, l := range config.App.Logs {
+		switch l {
+		case "listener":
+			logsGroup.GET("/listener", func(c *gin.Context) {
+				data, err := ReadLogData(conf.ListenerFile)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+					return
+				}
+				c.String(http.StatusOK, data)
+			})
+		case "executor":
+			if loggingExecutor {
+				logsGroup.GET("/executor", func(c *gin.Context) {
+					data, err := ReadLogData(conf.ExecutorFile)
+					if err != nil {
+						c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+						return
+					}
+					c.String(http.StatusOK, data)
+				})
+			}
+		case "watcher":
+			logsGroup.GET("/watcher", func(c *gin.Context) {
+				data, err := ReadLogData(conf.WatcherFile)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -38,20 +69,6 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener, watcherEnabled bool) 
 				c.String(http.StatusOK, data)
 			})
 		}
-		if executor == "prometheus" {
-			e.GET("/metrics", gin.WrapH(promhttp.Handler()))
-		}
-	}
-
-	if watcherEnabled {
-		e.GET("/logs/watcher", func(c *gin.Context) {
-			data, err := ReadLogData(conf.WatcherFile)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-			c.String(http.StatusOK, data)
-		})
 	}
 
 	if l != nil {

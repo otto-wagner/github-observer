@@ -6,7 +6,8 @@
     "watcher": true,
     "logs": [
       "executor",
-      "watcher"
+      "watcher",
+      "listener"
     ],
     "executors": [
       "logging",
