@@ -31,9 +31,14 @@ func Run(configuration conf.Config) {
 	engine := gin.New()
 	router.InitializeRoutes(engine, listener, configuration)
 
-	err := engine.Run(configuration.App.ListenAddress)
+	var err error
+	if configuration.Ssl.Activate {
+		err = engine.RunTLS(configuration.App.ListenAddress, configuration.Ssl.Cert, configuration.Ssl.Key)
+	} else {
+		err = engine.Run(configuration.App.ListenAddress)
+	}
 	if err != nil {
-		slog.Error("failed to start httpServer", "error", err)
+		slog.Error("failed to start server", "error", err)
 		os.Exit(1)
 	}
 	return

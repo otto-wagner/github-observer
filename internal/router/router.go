@@ -13,10 +13,10 @@ import (
 )
 
 func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.Config) {
-	//err = e.SetTrustedProxies(configuration.TrustedProxies)
-	//if err != nil {
-	//	return
-	//}
+	err := e.SetTrustedProxies(config.App.TrustedProxies)
+	if err != nil {
+		return
+	}
 
 	addCorsMiddleware(e)
 

@@ -32,13 +32,14 @@ type AppConfig struct {
 }
 
 type SslConfig struct {
-	Cert string `json:"cert" validate:"required,file"`
-	Key  string `json:"key" validate:"required,file"`
+	Activate bool   `json:"activate"`
+	Cert     string `json:"cert" validate:"required,file"`
+	Key      string `json:"key" validate:"required,file"`
 }
 
 type Config struct {
 	App AppConfig `json:"app"`
-	//Ssl SslConfig `json:"ssl"`
+	Ssl SslConfig `json:"ssl"`
 }
 
 func InitCommon(cfgFile string) (c Config, err error) {

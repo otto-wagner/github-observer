@@ -22,21 +22,7 @@ func Server() (cmdServer *cobra.Command) {
 	}
 
 	var cfgFile string
-	// config
 	cmdServer.PersistentFlags().StringVarP(&cfgFile, "config", "c", "conf/common.json", "config file (default is conf/common.json)")
-
-	// app
-	//cmdServer.PersistentFlags().StringP("app.listenAddress", "l", "", "Listen address of the HTTP endpoint")
-	//cmdServer.PersistentFlags().StringSliceP("app.trustedProxies", "t", []string{""}, "Action address of the HTTP API endpoint")
-	//cmdServer.PersistentFlags().StringP("app.mode", "g", "debug", "Gin mode")
-	//cmdServer.PersistentFlags().StringSliceP("app.executors", "e", []string{""}, "Executors to execute on event")
-
-	//cmdServer.PersistentFlags().BoolP("app.watcher", "w", configuration.App.Watcher, "Enable watcher")
-
-	// ssl
-	//cmdServer.PersistentFlags().StringP("ssl.cert", "s", "conf/ssl.cert", "Path to SSL certificate")
-	//cmdServer.PersistentFlags().StringP("ssl.key", "k", "conf/ssl.key", "Path to SSL key")
-
 	configuration, err := conf.InitCommon(cfgFile)
 	if err != nil {
 		slog.Error("failed to init config", "error", err)

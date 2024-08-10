@@ -1,6 +1,12 @@
 # configurations
 This directory contains the configuration files for the project
 
+## ssl
+The SSL configuration in the `common.json` file.
+- `ssl.activate`: Activate SSL (1 = activate, 0 = deactivate).
+- `ssl.certFile`: The path to the certificate file.
+- `ssl.keyFile`: The path to the key file.
+
 ## app
 The app configuration in the `common.json` file.
 

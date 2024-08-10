@@ -22,10 +22,16 @@
 # Go workspace file
 go.work
 
+# app
+app/
+
 # build
 bin/
 
 *.log
 
 conf/local_*
+conf/server.cert
+conf/server.key
+
 ngrok/etc/local.yml

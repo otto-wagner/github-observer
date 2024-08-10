@@ -21,11 +21,14 @@ mock/setup:
 mock/internal:
 	cd ./internal && mockery --all
 
+generate/certificate:
+	./scripts/generate-certificate.sh
+
 build:
-	go build -o app/github-observer .
+	go build -o ./app/github-observer ./cmd/main.go
 
 build/run:
-	./app/github-observer server
+	./app/github-observer server run
 
 run:
 	go run . server
