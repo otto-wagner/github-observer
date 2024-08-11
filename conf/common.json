@@ -1,4 +1,5 @@
 {
+  "secret": "your-secret",
   "ssl": {
     "activate": false,
     "cert": "./conf/server.cert",
@@ -17,13 +18,13 @@
     "executors": [
       "logging",
       "prometheus"
-    ],
-    "repositories": [
-      {
-        "owner": "otto-wagner",
-        "name": "github-observer",
-        "branch": "main"
-      }
     ]
-  }
+  },
+  "repositories": [
+    {
+      "owner": "otto-wagner",
+      "name": "github-observer",
+      "branch": "main"
+    }
+  ]
 }

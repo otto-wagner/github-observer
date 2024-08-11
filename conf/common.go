@@ -22,13 +22,12 @@ const (
 )
 
 type AppConfig struct {
-	ListenAddress  string             `json:"listenAddress" validate:"hostname_port"`
-	TrustedProxies []string           `json:"trustedProxies"`
-	Mode           string             `json:"mode" validate:"omitempty,oneof=release debug test"`
-	Executors      []Executor         `json:"executors"`
-	Watcher        bool               `json:"watcher"`
-	Repositories   []RepositoryConfig `json:"repositories" validate:"required"`
-	Logs           []string           `json:"logs"`
+	ListenAddress  string     `json:"listenAddress" validate:"hostname_port"`
+	TrustedProxies []string   `json:"trustedProxies"`
+	Mode           string     `json:"mode" validate:"omitempty,oneof=release debug test"`
+	Executors      []Executor `json:"executors"`
+	Watcher        bool       `json:"watcher"`
+	Logs           []string   `json:"logs"`
 }
 
 type SslConfig struct {
@@ -38,8 +37,10 @@ type SslConfig struct {
 }
 
 type Config struct {
-	App AppConfig `json:"app"`
-	Ssl SslConfig `json:"ssl"`
+	App          AppConfig          `json:"app"`
+	Repositories []RepositoryConfig `json:"repositories" validate:"required"`
+	Ssl          SslConfig          `json:"ssl"`
+	Secret       string             `json:"secret" validate:"required"`
 }
 
 func InitCommon(cfgFile string) (c Config, err error) {

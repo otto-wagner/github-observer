@@ -77,7 +77,7 @@ func initWatcher(repositories []core.Repository, executors []executor.IExecutor)
 
 func GetRepositories(configuration conf.Config) []core.Repository {
 	var repositories []core.Repository
-	for _, repo := range configuration.App.Repositories {
+	for _, repo := range configuration.Repositories {
 		coreRepo := core.Repository{
 			Name:   repo.Name,
 			Owner:  repo.Owner,

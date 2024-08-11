@@ -12,18 +12,14 @@ import (
 )
 
 type WebHookConfig struct {
-	Webhook Webhook `json:"webhook" validate:"required"`
-}
-
-type Webhook struct {
-	Hooks        []HookConfig       `json:"hooks" validate:"required"`
+	Secret       string             `json:"secret" validate:"required"`
+	Webhooks     []WebhookConfig    `json:"webhooks" validate:"required"`
 	Repositories []RepositoryConfig `json:"repositories" validate:"required"`
 }
 
-type HookConfig struct {
+type WebhookConfig struct {
 	PayloadUrl  string   `json:"payloadUrl" validate:"required"`
 	ContentType string   `json:"contentType" validate:"required"`
-	Secret      string   `json:"secret" validate:"required"`
 	InsecureSsl string   `json:"insecureSsl" validate:"required"`
 	Events      []string `json:"events" validate:"required"`
 }

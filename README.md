@@ -1,6 +1,10 @@
 # github-observer
 Github observer would like to observe github projects and forward the status.
 
+# Setup Application
+- You need to create a GitHub token and add it to the environment variable.
+- Set necessary configurations in the `conf` directory (see [conf/readme.md](conf/README.md)).
+
 # Listener
 A simple GitHub webhook listener that listen for Actions, Pull Requests and Pull Request review events (see [internal/listener/readme.md](internal/listener/README.md)).
 

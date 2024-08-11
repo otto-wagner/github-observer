@@ -28,7 +28,7 @@ func TestRouterIntegration(t *testing.T) {
 	executors := []executor.IExecutor{eLogging.NewExecutor(eLogging.NewMemory(), logger), ePrometheus.NewExecutor()}
 	listener := l.NewListener(repositories, executors, logger)
 
-	InitializeRoutes(engine, listener, conf.Config{})
+	InitializeRoutes(engine, listener, conf.Config{Secret: "your-secret"})
 
 	t.Run("Should return ok", func(t *testing.T) {
 		// given
@@ -38,6 +38,15 @@ func TestRouterIntegration(t *testing.T) {
 		// then
 		assert.Equal(t, http.StatusOK, response.Code)
 		assert.Equal(t, "{\"health\":\"ok\"}", response.Body.String())
+	})
+
+	t.Run("Should return 404", func(t *testing.T) {
+		// given
+		// when
+		response := mocks.PerformRequest(engine, http.MethodGet, "/not-found", "")
+
+		// then
+		assert.Equal(t, http.StatusNotFound, response.Code)
 	})
 
 	t.Run("Should listen workflows", func(t *testing.T) {
@@ -52,7 +61,7 @@ func TestRouterIntegration(t *testing.T) {
 		})
 
 		// when
-		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/workflow", string(event))
+		response := mocks.PerformRequestAuthorisation(engine, http.MethodPost, "/listen/workflow", string(event), "your-secret")
 
 		// then
 		assert.Equal(t, http.StatusOK, response.Code)
@@ -71,7 +80,7 @@ func TestRouterIntegration(t *testing.T) {
 		})
 
 		// when
-		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/pullrequest", string(event))
+		response := mocks.PerformRequestAuthorisation(engine, http.MethodPost, "/listen/pullrequest", string(event), "your-secret")
 
 		// then
 		assert.Equal(t, http.StatusOK, response.Code)
@@ -93,10 +102,56 @@ func TestRouterIntegration(t *testing.T) {
 		})
 
 		// when
-		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/pullrequest/review", string(event))
+		response := mocks.PerformRequestAuthorisation(engine, http.MethodPost, "/listen/pullrequest/review", string(event), "your-secret")
 
 		// then
 		assert.Equal(t, http.StatusOK, response.Code)
 		assert.Equal(t, "{\"message\":\"Pullrequest review received\"}", response.Body.String())
 	})
+
+	t.Run("Should return 400 when invalid json", func(t *testing.T) {
+		// given
+		// when
+		response := mocks.PerformRequestAuthorisation(engine, http.MethodPost, "/listen/workflow", "{", "your-secret")
+
+		// then
+		assert.Equal(t, http.StatusBadRequest, response.Code)
+	})
+
+	t.Run("Should return 400 when invalid request", func(t *testing.T) {
+		// given
+		// when
+		response := mocks.PerformRequestAuthorisation(engine, http.MethodPost, "/listen/workflow", "", "your-secret")
+
+		// then
+		assert.Equal(t, http.StatusBadRequest, response.Code)
+	})
+
+	t.Run("Should return 401 when invalid secret", func(t *testing.T) {
+		// given
+		// when
+		response := mocks.PerformRequestAuthorisation(engine, http.MethodPost, "/listen/workflow", "{},", "invalid")
+
+		// then
+		assert.Equal(t, http.StatusUnauthorized, response.Code)
+	})
+
+	t.Run("Should return 400 when missing X-Hub-Signature-256", func(t *testing.T) {
+		// given
+		// when
+		response := mocks.PerformRequest(engine, http.MethodPost, "/listen/workflow", "{}")
+
+		// then
+		assert.Equal(t, http.StatusBadRequest, response.Code)
+	})
+
+	t.Run("Should return 400 when body is empty", func(t *testing.T) {
+		// given
+		// when
+		response := mocks.PerformRequestAuthorisation(engine, http.MethodPost, "/listen/workflow", "", "your-secret")
+
+		// then
+		assert.Equal(t, http.StatusBadRequest, response.Code)
+	})
+
 }
