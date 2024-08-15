@@ -76,7 +76,7 @@
                 "textMode": "auto",
                 "wideLayout": true
             },
-            "pluginVersion": "11.0.0",
+            "pluginVersion": "10.4.3",
             "targets": [
                 {
                     "datasource": {
@@ -109,7 +109,7 @@
                         {
                             "targetBlank": true,
                             "title": "",
-                            "url": "https://github.com/${__field.labels.repository_full_name}/actions?query=is%3Afailure+event%3Apush"
+                            "url": "https://github.com/${__field.labels.repository_full_name}/actions?query=event%3Apush"
                         }
                     ],
                     "mappings": [],
@@ -153,7 +153,7 @@
                 "textMode": "auto",
                 "wideLayout": true
             },
-            "pluginVersion": "11.0.0",
+            "pluginVersion": "10.4.3",
             "targets": [
                 {
                     "datasource": {
@@ -186,7 +186,7 @@
                         {
                             "targetBlank": true,
                             "title": "",
-                            "url": "https://github.com/${__field.labels.repository_full_name}/actions?query=is%3Ain_progress"
+                            "url": "https://github.com/${__field.labels.repository_full_name}/actions?query=event%3Apush+is%3Ain_progress"
                         }
                     ],
                     "mappings": [],
@@ -209,7 +209,7 @@
             },
             "gridPos": {
                 "h": 8,
-                "w": 16,
+                "w": 8,
                 "x": 0,
                 "y": 14
             },
@@ -230,7 +230,7 @@
                 "textMode": "value_and_name",
                 "wideLayout": true
             },
-            "pluginVersion": "11.0.0",
+            "pluginVersion": "10.4.3",
             "targets": [
                 {
                     "datasource": {
@@ -239,7 +239,7 @@
                     },
                     "disableTextWrap": false,
                     "editorMode": "builder",
-                    "expr": "sum by(repository_full_name) (latest_workflows{state=~\"in_progress|queued\"})",
+                    "expr": "sum by(repository_full_name) (latest_workflows{state=~\"in_progress\"})",
                     "fullMetaSearch": false,
                     "includeNullMetadata": true,
                     "instant": false,
@@ -263,7 +263,84 @@
                         {
                             "targetBlank": true,
                             "title": "",
-                            "url": "https://github.com/${__field.labels.repository_full_name}/actions?query=is%3Ain_progress"
+                            "url": "https://github.com/${__field.labels.repository_full_name}/actions?query=event%3Apush+is%3Aqueued"
+                        }
+                    ],
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "blue",
+                                "value": 1
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 8,
+                "x": 8,
+                "y": 14
+            },
+            "id": 6,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.3",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "PBFA97CFB590B2093"
+                    },
+                    "disableTextWrap": false,
+                    "editorMode": "builder",
+                    "expr": "sum by(repository_full_name) (latest_workflows{state=~\"queued\"})",
+                    "fullMetaSearch": false,
+                    "includeNullMetadata": true,
+                    "instant": false,
+                    "legendFormat": "__auto",
+                    "range": true,
+                    "refId": "A",
+                    "useBackend": false
+                }
+            ],
+            "title": "Queued Actions",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "PBFA97CFB590B2093"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "links": [
+                        {
+                            "targetBlank": true,
+                            "title": "",
+                            "url": "https://github.com/${__field.labels.repository_full_name}/actions?query=event%3Apush+is%3Awaiting"
                         }
                     ],
                     "mappings": [],
@@ -307,7 +384,7 @@
                 "textMode": "value_and_name",
                 "wideLayout": true
             },
-            "pluginVersion": "11.0.0",
+            "pluginVersion": "10.4.3",
             "targets": [
                 {
                     "datasource": {
@@ -340,7 +417,6 @@
         "from": "now-1s",
         "to": "now"
     },
-    "timeRangeUpdatedDuringEditOrView": false,
     "timepicker": {},
     "timezone": "browser",
     "title": "Github",
