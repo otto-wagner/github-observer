@@ -5,6 +5,16 @@ Github observer would like to observe github projects and forward the status.
 - You need to create a GitHub token and add it to the environment variable.
 - Set necessary configurations in the `conf` directory (see [conf/readme.md](conf/README.md)).
 
+# Start Application
+You can start the application with the necessary configurations in the `conf` directory with the following command:
+```bash
+    docker run -d --name github-observer \
+      -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+      -v $(pwd)/conf/common.json:/conf/common.json \
+      -p 8443:8443 \
+      ghcr.io/otto-wagner/github-observer:latest
+```
+
 # Listener
 A simple GitHub webhook listener that listen for Actions, Pull Requests and Pull Request review events (see [internal/listener/readme.md](internal/listener/README.md)).
 

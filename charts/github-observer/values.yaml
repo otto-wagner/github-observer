@@ -1,0 +1,46 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/otto-wagner/github-observer
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8443
+
+env:
+  USER_UID: 1000
+  GITHUB_TOKEN: ""
+
+volumeMounts:
+  - name: config-volume
+    mountPath: /conf
+
+volumes:
+  - name: config-volume
+    configMap:
+      name: github-observer-config
+
+resources: {}
+
+secret:
+  - name: github-observer
+
+ssl:
+  activate: true
+  cert: "path/to/cert"
+  key: "path/to/key"
+app:
+  listenAddress: "0.0.0.0:8080"
+  trustedProxies: ["192.168.1.1", "192.168.1.2"]
+  mode: "production"
+  watcher: true
+  logs:
+    - "executor",
+    - "watcher",
+    - "listener"
+  executors:
+    - "logging",
+    - "prometheus"
+repositories: "my-repo"
