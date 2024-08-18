@@ -32,8 +32,8 @@ type AppConfig struct {
 
 type SslConfig struct {
 	Activate bool   `json:"activate"`
-	Cert     string `json:"cert" validate:"file"`
-	Key      string `json:"key" validate:"file"`
+	Cert     string `json:"cert"`
+	Key      string `json:"key"`
 }
 
 type Config struct {
