@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - ./conf:/conf
     user: observer
     environment:
       - USER_UID=1000
@@ -42,25 +44,26 @@ services:
     depends_on:
       - prometheus
 
-#  ngrok:
-#    image: ngrok/ngrok:latest
-#    ports:
-#      - "4040:4040"
-#    networks:
-#      - github-observer
-#    command:
-#      - "start"
-#      - "--all"
-#      - "--config"
-#      - "/etc/ngrok.yml"
-#    environment:
-#      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
-#    volumes:
-#      - ./ngrok/etc/ngrok.yml:/etc/ngrok.yml
-#    depends_on:
-#        - github-observer
-#        - prometheus
-#        - grafana
+  ngrok:
+    image: ngrok/ngrok:latest
+    ports:
+      - "4040:4040"
+    networks:
+      - github-observer
+    command:
+      - "start"
+      - "--all"
+      - "--config"
+      - "/etc/ngrok.yml"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    volumes:
+      - ./ngrok/etc/ngrok.yml:/etc/ngrok.yml
+      - ./conf:/conf
+    depends_on:
+        - github-observer
+        - prometheus
+        - grafana
 
 volumes:
   grafana_data:
