@@ -2,8 +2,8 @@
   "secret": "your-secret",
   "ssl": {
     "activate": false,
-    "cert": "./conf/server.cert",
-    "key": "./conf/server.key"
+    "cert": "./certs/server.cert",
+    "key": "./certs/server.key"
   },
   "app": {
     "listenAddress": "0.0.0.0:8443",

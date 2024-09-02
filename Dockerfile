@@ -22,7 +22,7 @@ COPY . .
 RUN if [ "$ACTIVATE_SSL" = "true" ]; then \
      chmod +x ./scripts/generate_certificate.sh; \
      apk add -U --no-cache ca-certificates git openssl; \
-    ./scripts/generate_cert.sh; \
+     ./scripts/generate_certificate.sh; \
     fi
 
 RUN go build -a -o observer cmd/main.go

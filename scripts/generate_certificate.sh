@@ -14,5 +14,5 @@ echo "Enter Common Name (e.g. server FQDN or YOUR name):"
 read COMMON_NAME
 
 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
-  -keyout conf/server.key -out conf/server.cert \
+  -keyout ./certs/server.key -out ./certs/server.cert \
   -subj "/C=$COUNTRY/ST=$STATE/L=$LOCALITY/O=$ORGANIZATION/OU=$ORG_UNIT/CN=$COMMON_NAME"
