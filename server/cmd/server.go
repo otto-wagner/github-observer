@@ -21,9 +21,7 @@ func Server() (cmdServer *cobra.Command) {
 		},
 	}
 
-	var cfgFile string
-	cmdServer.PersistentFlags().StringVarP(&cfgFile, "config", "c", "conf/common.json", "config file (default is conf/common.json)")
-	configuration, err := conf.InitCommon(cfgFile)
+	configuration, err := conf.InitCommon()
 	if err != nil {
 		slog.Error("failed to init config", "error", err)
 		os.Exit(1)

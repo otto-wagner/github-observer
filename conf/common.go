@@ -2,9 +2,6 @@ package conf
 
 import (
 	"errors"
-	"log/slog"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -43,21 +40,10 @@ type Config struct {
 	Secret       string             `json:"secret" validate:"required"`
 }
 
-func InitCommon(cfgFile string) (c Config, err error) {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Search config in default location conf/common.json
-		configPath, err := filepath.Abs("../conf")
-		if err != nil {
-			slog.Error("failed to get absolute path", "error", err)
-			os.Exit(1)
-		}
-		viper.AddConfigPath(configPath)
-		viper.SetConfigName("common")
-		viper.SetConfigType("json")
-	}
+func InitCommon() (c Config, err error) {
+	viper.SetConfigName("common")
+	viper.SetConfigType("json")
+	//}
 	// load env variables
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
