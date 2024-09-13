@@ -18,7 +18,7 @@ import (
 	"os"
 )
 
-func Run(configuration conf.Config) {
+func Run(configuration conf.CommonConfig) {
 	repositories := GetRepositories(configuration)
 	executors := initExecutors(configuration)
 	listener := initListener(repositories, executors)
@@ -49,13 +49,13 @@ func initListener(repositories []core.Repository, executors []executor.IExecutor
 	return l.NewListener(repositories, executors, fileLogger)
 }
 
-func initExecutors(configuration conf.Config) (executors []executor.IExecutor) {
+func initExecutors(configuration conf.CommonConfig) (executors []executor.IExecutor) {
 	for _, e := range configuration.App.Executors {
 		switch e {
-		case conf.Logging:
+		case string(conf.Logging):
 			fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: conf.ExecutorFile, MaxSize: 10, MaxAge: 1}, nil))
 			executors = append(executors, Logging.NewExecutor(Logging.NewMemory(), fileLogger))
-		case conf.Prometheus:
+		case string(conf.Prometheus):
 			executors = append(executors, Prometheus.NewExecutor())
 		}
 	}
@@ -75,15 +75,10 @@ func initWatcher(repositories []core.Repository, executors []executor.IExecutor)
 	return
 }
 
-func GetRepositories(configuration conf.Config) []core.Repository {
+func GetRepositories(configuration conf.CommonConfig) []core.Repository {
 	var repositories []core.Repository
 	for _, repo := range configuration.Repositories {
-		coreRepo := core.Repository{
-			Name:   repo.Name,
-			Owner:  repo.Owner,
-			Branch: repo.Branch,
-		}
-		repositories = append(repositories, coreRepo)
+		repositories = append(repositories, core.ToRepository(repo))
 	}
 	return repositories
 }

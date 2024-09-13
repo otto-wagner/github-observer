@@ -31,7 +31,10 @@ bin/
 *.log
 
 conf/local_*
-conf/server.cert
-conf/server.key
+ngrok/etc/local_*
+
+certs/server.cert
+certs/server.key
 
 ngrok/etc/local.yml
+/charts/monitoring/

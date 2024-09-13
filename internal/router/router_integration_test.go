@@ -28,7 +28,7 @@ func TestRouterIntegration(t *testing.T) {
 	executors := []executor.IExecutor{eLogging.NewExecutor(eLogging.NewMemory(), logger), ePrometheus.NewExecutor()}
 	listener := l.NewListener(repositories, executors, logger)
 
-	InitializeRoutes(engine, listener, conf.Config{Secret: "your-secret"})
+	InitializeRoutes(engine, listener, conf.CommonConfig{HmacSecret: "your-secret"})
 
 	t.Run("Should return ok", func(t *testing.T) {
 		// given

@@ -1,9 +1,10 @@
 {
-  "secret": "your-secret",
+  "hmacSecret": "your-secret",
   "webhooks":  [
     {
       "payloadUrl": "https://localhost:8443/listen/workflow",
       "contentType": "json",
+      "secret": "webhook-secret",
       "insecureSsl": "1",
       "events": [
         "workflow_run"
@@ -12,6 +13,7 @@
     {
       "payloadUrl": "https://localhost:8443/listen/pullrequest",
       "contentType": "json",
+      "secret": "webhook-secret",
       "insecureSsl": "1",
       "events": [
         "pull_request"
@@ -20,6 +22,7 @@
     {
       "payloadUrl": "https://localhost:8443/listen/pullrequest/review",
       "contentType": "json",
+      "secret": "webhook-secret",
       "insecureSsl": "1",
       "events": [
         "pull_request_review"
@@ -27,9 +30,6 @@
     }
   ],
   "repositories": [
-    {
-      "owner": "otto-wagner",
-      "name": "github-observer"
-    }
+    "otto-wagner/github-observer@main"
   ]
 }

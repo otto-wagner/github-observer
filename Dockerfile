@@ -40,6 +40,8 @@ RUN touch listener.log && chown $USER_UID:$USER_UID listener.log
 
 COPY --from=build /app/certs /certs
 RUN chown -R $USER_UID:$USER_UID /certs
+COPY --from=build /app/conf /conf
+RUN chown -R $USER_UID:$USER_UID /conf
 
 RUN adduser -u $USER_UID -D $USERNAME
 USER $USERNAME

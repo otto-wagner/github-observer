@@ -3,7 +3,6 @@ package cmd
 import (
 	"github-observer/conf"
 	"github-observer/webhook"
-	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
 	"log/slog"
 	"os"
@@ -21,20 +20,22 @@ func WebHook() (cmdWebhook *cobra.Command) {
 		},
 	}
 
-	var cfgFile string
-	cmdWebhook.PersistentFlags().StringVarP(&cfgFile, "config", "c", "conf/webhook.json", "config file (default is conf/webhook.json)")
-	configuration, err := conf.InitWebhook(cfgFile)
+	configuration, err := conf.InitWebhook()
 	if err != nil {
 		slog.Error("failed to init config", "error", err)
 		os.Exit(1)
 	}
-	validationConfiguration(configuration)
+	err = configuration.Validate()
+	if err != nil {
+		slog.Error("configuration validation failed", "error", err)
+		os.Exit(1)
+	}
 
 	create := &cobra.Command{
 		Use:   "create",
 		Short: "create webhooks",
 		Run: func(cmd *cobra.Command, args []string) {
-			webhook.Create(configuration)
+			webhook.Create(configuration.Config())
 		},
 	}
 	cmdWebhook.AddCommand(create)
@@ -43,36 +44,19 @@ func WebHook() (cmdWebhook *cobra.Command) {
 		Use:   "list",
 		Short: "list webhooks",
 		Run: func(cmd *cobra.Command, args []string) {
-			webhook.List(configuration)
+			webhook.List(configuration.Config())
 		},
 	}
 	cmdWebhook.AddCommand(list)
 
-	delete := &cobra.Command{
+	deleteWebhook := &cobra.Command{
 		Use:   "delete",
 		Short: "delete webhooks",
 		Run: func(cmd *cobra.Command, args []string) {
-			webhook.Delete(configuration)
+			webhook.Delete(configuration.Config())
 		},
 	}
-	cmdWebhook.AddCommand(delete)
+	cmdWebhook.AddCommand(deleteWebhook)
 
 	return
-}
-
-func validationConfiguration(configWebhook conf.WebHookConfig) {
-	err := configWebhook.Validate()
-	if err != nil {
-		for _, e := range err.(validator.ValidationErrors) {
-			if e.ActualTag() == "required" {
-				slog.Error("Missing required configuration value", "field", e.StructNamespace())
-			} else if e.Param() != "" {
-				slog.Error("Validation failed", "field", e.StructNamespace(), "tag", e.ActualTag(), "param", e.Param())
-			} else {
-				slog.Error("Validation failed", "field", e.StructNamespace(), "tag", e.ActualTag())
-			}
-		}
-		slog.Error("configuration validation failed")
-		os.Exit(1)
-	}
 }

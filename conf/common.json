@@ -1,5 +1,5 @@
 {
-  "secret": "your-secret",
+  "hmacSecret": "your-secret",
   "ssl": {
     "activate": false,
     "cert": "./certs/server.cert",
@@ -21,10 +21,6 @@
     ]
   },
   "repositories": [
-    {
-      "owner": "otto-wagner",
-      "name": "github-observer",
-      "branch": "main"
-    }
+    "otto-wagner/github-observer@main"
   ]
 }

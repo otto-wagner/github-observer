@@ -31,7 +31,10 @@ build/run:
 	./app/github-observer server run
 
 run:
-	go run . server
+	go run ./cmd/main.go server
 
 docker/start:
 	docker-compose build && docker-compose up -d
+
+docker/release:
+	docker build . --tag ottowagner/github-observer:latest && docker push ottowagner/github-observer:latest

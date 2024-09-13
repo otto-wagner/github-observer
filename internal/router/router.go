@@ -18,7 +18,7 @@ import (
 	"strings"
 )
 
-func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.Config) {
+func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.CommonConfig) {
 	err := e.SetTrustedProxies(config.App.TrustedProxies)
 	if err != nil {
 		return
@@ -27,8 +27,13 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.Config) {
 	addCorsMiddleware(e)
 
 	e.GET("/health", func(c *gin.Context) {
-		zap.S().Info("Health check")
 		c.JSON(http.StatusOK, gin.H{"health": "ok"})
+	})
+
+	e.GET("/configuration", func(c *gin.Context) {
+		zap.S().Info("Health check")
+		config.HmacSecret = config.HmacSecret[:4] + strings.Repeat("*", len(config.HmacSecret)-4)
+		c.JSON(http.StatusOK, gin.H{"configuration": config})
 	})
 
 	var loggingExecutor bool
@@ -79,7 +84,7 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.Config) {
 
 	if l != nil {
 		el := e.Group("/listen")
-		el.Use(hmacMiddleware([]byte(config.Secret)))
+		el.Use(hmacMiddleware([]byte(config.HmacSecret)))
 		el.POST("/workflow", l.Workflow)
 		el.POST("/pullrequest", l.PullRequest)
 		el.POST("/pullrequest/review", l.PullRequestReview)

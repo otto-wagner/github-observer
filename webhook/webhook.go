@@ -3,6 +3,7 @@ package webhook
 import (
 	"context"
 	"github-observer/conf"
+	"github-observer/internal/core"
 	"github.com/google/go-github/v61/github"
 	"golang.org/x/oauth2"
 	"log/slog"
@@ -19,12 +20,13 @@ func Create(configuration conf.WebHookConfig) {
 
 	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})))
 	for _, hook := range configuration.Webhooks {
-		for _, repository := range configuration.Repositories {
+		for _, repo := range configuration.Repositories {
+			repository := core.ToRepository(repo)
 			hookResponse, response, err := client.Repositories.CreateHook(context.Background(), repository.Owner, repository.Name, &github.Hook{
 				Config: &github.HookConfig{
 					URL:         github.String(hook.PayloadUrl),
 					ContentType: github.String(hook.ContentType),
-					Secret:      github.String(configuration.Secret),
+					Secret:      github.String(configuration.HmacSecret),
 					InsecureSSL: github.String(hook.InsecureSsl),
 				},
 				Events: hook.Events,
@@ -53,7 +55,8 @@ func List(configuration conf.WebHookConfig) {
 	}
 
 	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})))
-	for _, repository := range configuration.Repositories {
+	for _, repo := range configuration.Repositories {
+		repository := core.ToRepository(repo)
 		hooks, _, err := client.Repositories.ListHooks(context.Background(), repository.Owner, repository.Name, nil)
 		if err != nil {
 			slog.Error("failed to list webhooks", "error", err)
@@ -75,7 +78,8 @@ func Delete(configuration conf.WebHookConfig) {
 	}
 
 	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})))
-	for _, repository := range configuration.Repositories {
+	for _, repo := range configuration.Repositories {
+		repository := core.ToRepository(repo)
 		hooks, _, err := client.Repositories.ListHooks(context.Background(), repository.Owner, repository.Name, nil)
 		if err != nil {
 			slog.Error("failed to list webhooks", "error", err)

@@ -11,10 +11,19 @@ import (
 	"github.com/spf13/viper"
 )
 
+type IWebhookConfig interface {
+	Validate() error
+	Config() WebHookConfig
+}
+
+type webhookConfig struct {
+	webHookConfig WebHookConfig
+}
+
 type WebHookConfig struct {
-	Secret       string             `json:"secret" validate:"required"`
-	Webhooks     []WebhookConfig    `json:"webhooks" validate:"required"`
-	Repositories []RepositoryConfig `json:"repositories" validate:"required"`
+	HmacSecret   string          `json:"hmacSecret" validate:"required"`
+	Webhooks     []WebhookConfig `json:"webhooks" validate:"required,dive"`
+	Repositories []string        `json:"repositories" validate:"required,repositories"`
 }
 
 type WebhookConfig struct {
@@ -24,39 +33,58 @@ type WebhookConfig struct {
 	Events      []string `json:"events" validate:"required"`
 }
 
-func InitWebhook(cfgFile string) (c WebHookConfig, err error) {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		configPath, err := filepath.Abs("../conf")
-		if err != nil {
-			slog.Error("failed to get absolute path", "error", err)
-			os.Exit(1)
-		}
-		viper.AddConfigPath(configPath)
-		viper.SetConfigName("webhook")
-		viper.SetConfigType("json")
+func InitWebhook() (IWebhookConfig, error) {
+	webhookConfig := webhookConfig{}
+	configPath, err := filepath.Abs("./conf")
+	if err != nil {
+		slog.Error("failed to get absolute path", "error", err)
+		os.Exit(1)
 	}
-	// load env variables
+	viper.AddConfigPath(configPath)
+	viper.SetConfigName("webhook")
+	viper.SetConfigType("json")
+
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err != nil {
-		var err2 viper.ConfigFileNotFoundError
-		if !errors.As(err, &err2) {
-			return c, err2
+	if err = viper.ReadInConfig(); err != nil {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if !errors.As(err, &configFileNotFoundError) {
+			return nil, err
 		}
 	}
-
-	err = viper.Unmarshal(&c)
+	err = viper.Unmarshal(&webhookConfig.webHookConfig)
 	if err != nil {
-		return c, err
+		return nil, err
+	}
+	return &webhookConfig, nil
+}
+
+func (c webhookConfig) Config() WebHookConfig {
+	return c.webHookConfig
+}
+
+func (c webhookConfig) Validate() (err error) {
+	err = c.validation()
+	if err != nil {
+		for _, e := range err.(validator.ValidationErrors) {
+			if e.ActualTag() == "required" {
+				slog.Error("Missing required configuration value", "field", e.StructNamespace())
+			} else if e.Param() != "" {
+				slog.Error("Validation failed", "field", e.StructNamespace(), "tag", e.ActualTag(), "param", e.Param())
+			} else {
+				slog.Error("Validation failed", "field", e.StructNamespace(), "tag", e.ActualTag())
+			}
+		}
 	}
 	return
 }
 
-func (c WebHookConfig) Validate() error {
+func (c webhookConfig) validation() error {
 	validate := validator.New()
-	return validate.Struct(c)
+	err := validate.RegisterValidation("repositories", validateRepositories)
+	if err != nil {
+		return err
+	}
+	return validate.Struct(c.webHookConfig)
 }

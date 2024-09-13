@@ -3,8 +3,8 @@ package cmd
 import (
 	"github-observer/conf"
 	"github-observer/server"
-	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"log/slog"
 	"os"
 )
@@ -21,12 +21,44 @@ func Server() (cmdServer *cobra.Command) {
 		},
 	}
 
-	configuration, err := conf.InitCommon()
+	config, err := conf.InitCommon()
 	if err != nil {
 		slog.Error("failed to init config", "error", err)
 		os.Exit(1)
 	}
-	validationConfiguration(configuration)
+	configuration := config.Config()
+
+	// app
+	cmdServer.PersistentFlags().StringVarP(&configuration.App.ListenAddress, "app.listenAddress", "l", configuration.App.ListenAddress, "Listen address of the HTTP API endpoint")
+	cmdServer.PersistentFlags().StringSliceVarP(&configuration.App.TrustedProxies, "app.trustedProxies", "t", configuration.App.TrustedProxies, "Listen address of the HTTP API endpoint")
+	cmdServer.PersistentFlags().StringVarP(&configuration.App.Mode, "app.mode", "m", configuration.App.Mode, "Gin mode")
+	cmdServer.PersistentFlags().BoolVarP(&configuration.App.Watcher, "app.watcher", "w", configuration.App.Watcher, "Watcher")
+	cmdServer.PersistentFlags().StringSliceVarP(&configuration.App.Executors, "app.executors", "e", configuration.App.Executors, "Executors")
+	cmdServer.PersistentFlags().StringSliceVarP(&configuration.App.Logs, "app.logs", "o", configuration.App.Logs, "Logs")
+
+	// ssl
+	cmdServer.PersistentFlags().BoolVarP(&configuration.Ssl.Activate, "ssl.activate", "a", configuration.Ssl.Activate, "Activate SSL")
+	cmdServer.PersistentFlags().StringVarP(&configuration.Ssl.Cert, "ssl.cert", "c", configuration.Ssl.Cert, "Cert")
+	cmdServer.PersistentFlags().StringVarP(&configuration.Ssl.Key, "ssl.key", "k", configuration.Ssl.Key, "Key")
+
+	// secret
+	cmdServer.PersistentFlags().StringVarP(&configuration.HmacSecret, "secret", "s", configuration.HmacSecret, "HmacSecret")
+
+	// repositories
+	cmdServer.PersistentFlags().StringSliceVarP(&configuration.Repositories, "repositories", "r", configuration.Repositories, "owner/repo@branch")
+
+	// validation
+	err = config.Validate()
+	if err != nil {
+		slog.Error("configuration validation failed", "error", err)
+		os.Exit(1)
+	}
+
+	err = viper.BindPFlags(cmdServer.PersistentFlags())
+	if err != nil {
+		slog.Error("failed to bind flags", "error", err)
+		os.Exit(1)
+	}
 
 	cmd := &cobra.Command{
 		Use:   "run",
@@ -38,20 +70,4 @@ func Server() (cmdServer *cobra.Command) {
 	cmdServer.AddCommand(cmd)
 
 	return
-}
-
-func validationConfiguration(configuration conf.Config) {
-	err := configuration.Validate()
-	if err != nil {
-		for _, e := range err.(validator.ValidationErrors) {
-			if e.ActualTag() == "required" {
-				slog.Error("Missing required configuration value", "field", e.StructNamespace())
-			} else if e.Param() != "" {
-				slog.Error("Validation failed", "field", e.StructNamespace(), "tag", e.ActualTag(), "param", e.Param())
-			} else {
-				slog.Error("Validation failed", "field", e.StructNamespace(), "tag", e.ActualTag())
-			}
-		}
-		slog.Error("configuration validation failed")
-	}
 }
