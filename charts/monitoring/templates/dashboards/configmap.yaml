@@ -1,0 +1,12 @@
+{{- if .Values.monitoring.dashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-dashboards
+  annotations:
+    k8s-sidecar-target-directory: /tmp/dashboards/{{ .Values.monitoring.dashboards.targetFolder | default .Release.Name }}
+  labels:
+    grafana_dashboard: "1"
+data:
+{{ (.Files.Glob "../grafana/provisioning/dashboards/*.json").AsConfig | indent 2 }}
+{{- end }}

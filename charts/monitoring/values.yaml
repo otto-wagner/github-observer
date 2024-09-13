@@ -1,0 +1,108 @@
+---
+# monitoring configuration
+monitoring:
+  # dashboard configuration
+  dashboards:
+    # if set to true, will create the dashboard configmap
+    enabled: true
+    # the folder in grafana for all dashboards. defaults to the release name
+    targetFolder: General
+
+kube-prometheus-stack:
+  fullnameOverride: prometheus
+  serviceMonitor:
+    enabled: true
+  defaultRules:
+    create: true
+    disabled:
+      KubeClientErrors: true
+    rules:
+      alertmanager: false
+      etcd: false
+      configReloaders: false
+      general: true
+      k8s: true
+      kubeApiserverAvailability: false
+      kubeApiserverBurnrate: false
+      kubeApiserverHistogram: false
+      kubeApiserverSlos: false
+      kubeControllerManager: false
+      kubelet: false
+      kubeProxy: false
+      kubePrometheusGeneral: true
+      kubePrometheusNodeRecording: true
+      kubernetesApps: true
+      kubernetesResources: true
+      kubernetesStorage: true
+      kubernetesSystem: true
+      kubeSchedulerAlerting: false
+      kubeSchedulerRecording: false
+      kubeStateMetrics: true
+      network: true
+      node: true
+      nodeExporterAlerting: false
+      nodeExporterRecording: false
+      prometheus: true
+      prometheusOperator: false
+      windows: false
+
+  kube-state-metrics:
+    autosharding:
+      enabled: true
+    replicas: 1
+    prometheus:
+      monitor:
+        enabled: true
+  runbookUrl: "https://runbooks.prometheus-operator.dev/runbooks"
+  nodeExporter:
+    enabled: false
+  kubeProxy:
+    enabled: true
+  prometheusOperator:
+    admissionWebhooks:
+      enabled: false
+    tls:
+      enabled: false
+  grafana:
+    adminPassword: secret
+    enabled: true
+    ingress:
+      enabled: true
+      path: /
+      hosts:
+        - grafana.local
+    serviceAccount:
+      create: true
+      name: "grafana-sa"
+
+  prometheus:
+    serviceMonitor:
+      enabled: true
+    serviceAccount:
+      create: true
+      name: "prometheus-sa"
+    service:
+      sessionAffinity: "ClientIP"
+    prometheusSpec:
+      resources:
+        requests:
+          memory: 4Gi
+          cpu: 1
+        limits:
+          memory: 20Gi
+          cpu: 4
+      retention: 7d
+      logLevel: debug
+      logFormat: logfmt
+      podMonitorSelectorNilUsesHelmValues: false
+      probeSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelector: { }
+      podMonitorSelector: { }
+      ruleSelector: { }
+
+probes: { }
+
+alerts:
+  enabled: false

@@ -1,41 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "github-observer.fullname" . }}
-  labels:
-    {{- include "github-observer.labels" . | nindent 4 }}
+  name: {{ .Values.fullname }}
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "github-observer.selectorLabels" . | nindent 6 }}
+      app: {{ .Values.fullname }}
   template:
     metadata:
       labels:
-        {{- include "github-observer.selectorLabels" . | nindent 8 }}
+        app: {{ .Values.fullname }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: {{ .Values.fullname }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           ports:
-            - containerPort: {{ .Values.service.port }}
+            - name: http
+              containerPort: {{ .Values.service.port }}
           env:
-            - name: USER_UID
-              value: "{{ .Values.env.USER_UID }}"
+            {{- range .Values.env }}
+            - {{- tpl (toYaml .) $ | nindent 14 }}
+            {{- end }}
             - name: GITHUB_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: github-observer-secret
-                  key: GITHUB_TOKEN
-          volumeMounts:
-            {{- range .Values.volumeMounts }}
-            - name: {{ .name }}
-              mountPath: {{ .mountPath }}
-            {{- end }}
-      volumes:
-        {{- range .Values.volumes }}
-        - name: {{ .name }}
-          configMap:
-            name: {{ .configMap.name }}
-        {{- end }}
+                  name: {{ .Values.secret.key }}
+                  key: {{ .Values.secret.key }}

@@ -1,46 +1,39 @@
 replicaCount: 1
 
+fullname: github-observer
+namespace: observability
+ingress:
+  host: github-observer.local
+
 image:
   repository: ghcr.io/otto-wagner/github-observer
   tag: latest
-  pullPolicy: IfNotPresent
 
 service:
-  type: ClusterIP
-  port: 8443
-
-env:
-  USER_UID: 1000
-  GITHUB_TOKEN: ""
-
-volumeMounts:
-  - name: config-volume
-    mountPath: /conf
-
-volumes:
-  - name: config-volume
-    configMap:
-      name: github-observer-config
-
-resources: {}
+    port: 8443
 
 secret:
-  - name: github-observer
+  key: github-token
+  value: "token"
 
-ssl:
-  activate: true
-  cert: "path/to/cert"
-  key: "path/to/key"
-app:
-  listenAddress: "0.0.0.0:8080"
-  trustedProxies: ["192.168.1.1", "192.168.1.2"]
-  mode: "production"
-  watcher: true
-  logs:
-    - "executor",
-    - "watcher",
-    - "listener"
-  executors:
-    - "logging",
-    - "prometheus"
-repositories: "my-repo"
+env:
+  - name: "SSL_ACTIVATE"
+    value: "false"
+  - name: "SSL_CERT"
+    value: "./certs/server.cert"
+  - name: "SSL_KEY"
+    value: "./certs/server.key"
+  - name: "APP_LISTENADDRESS"
+    value: "0.0.0.0:8080"
+  - name: "APP_TRUSTEDPROXIES"
+    value: null
+  - name: "APP_MODE"
+    value: "debug"
+  - name: "APP_WATCHER"
+    value: "true"
+  - name: "APP_LOGS"
+    value: "executor,watcher,listener"
+  - name: "APP_EXECUTORS"
+    value: "logging,prometheus"
+  - name: "REPOSITORIES"
+    value: "otto-wagner/github-observer@main"
