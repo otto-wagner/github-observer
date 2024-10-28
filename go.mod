@@ -1,6 +1,7 @@
 module github-observer
 
 go 1.21
+toolchain go1.23.2
 
 require (
 	github.com/gin-contrib/cors v1.7.2
@@ -8,7 +9,7 @@ require (
 	github.com/go-co-op/gocron v1.37.0
 	github.com/go-playground/validator/v10 v10.22.1
 	github.com/google/go-github/v61 v61.0.0
-	github.com/migueleliasweb/go-github-mock v1.0.1
+	github.com/migueleliasweb/go-github-mock v1.1.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
@@ -72,7 +73,7 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
