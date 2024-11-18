@@ -7,7 +7,7 @@ require (
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-co-op/gocron v1.37.0
-	github.com/go-playground/validator/v10 v10.22.1
+	github.com/go-playground/validator/v10 v10.23.0
 	github.com/google/go-github/v61 v61.0.0
 	github.com/migueleliasweb/go-github-mock v1.1.0
 	github.com/prometheus/client_golang v1.20.5
