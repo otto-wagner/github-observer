@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v2.2.0
+        uses: dependabot/fetch-metadata@v2.3.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Approve a PR
