@@ -10,12 +10,12 @@ require (
 	github.com/go-playground/validator/v10 v10.25.0
 	github.com/google/go-github/v61 v61.0.0
 	github.com/migueleliasweb/go-github-mock v1.1.0
-	github.com/prometheus/client_golang v1.21.0
+	github.com/prometheus/client_golang v1.21.1
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/oauth2 v0.27.0
+	golang.org/x/oauth2 v0.28.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
