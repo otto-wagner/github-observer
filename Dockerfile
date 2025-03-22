@@ -1,4 +1,4 @@
-FROM golang:1.21.9-alpine AS build
+FROM golang:1.24.1-alpine3.21 AS build
 
 ARG ACTIVATE_SSL=false
 
@@ -27,7 +27,7 @@ RUN if [ "$ACTIVATE_SSL" = "true" ]; then \
 
 RUN go build -a -o observer cmd/main.go
 
-FROM alpine:3.19.1
+FROM alpine:3.21
 
 ARG USERNAME=observer
 ARG USER_UID=1000

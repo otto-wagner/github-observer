@@ -26,3 +26,17 @@ updates:
       gomod:
         patterns:
           - "*"
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+      timezone: Europe/Berlin
+    labels:
+      - "dependabot :suspect:"
+    groups:
+      docker:
+        patterns:
+          - "*"

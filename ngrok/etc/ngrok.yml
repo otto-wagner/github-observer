@@ -2,6 +2,8 @@ version: "2"
 web_addr: localhost:4040
 log: stdout
 
+authtoken: your-token
+
 tunnels:
   observer:
     addr: github-observer:8443
@@ -11,7 +13,7 @@ tunnels:
     verify_webhook:
       provider: github
       # github webhook secret
-      secret:
+      secret: your-secret
 
 #  prometheus:
 #      addr: prometheus:9090
