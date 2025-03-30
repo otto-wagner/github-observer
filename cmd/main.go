@@ -1,15 +1,21 @@
 package main
 
 import (
-	server "github-observer/server/cmd"
-	webhook "github-observer/webhook/cmd"
+	"github-observer/server"
+	"github-observer/webhook"
 	"github.com/spf13/cobra"
 	"log/slog"
 	"os"
 )
 
 func init() {
-	jsonHandler := slog.NewJSONHandler(os.Stdout, nil)
+	file, err := os.OpenFile(server.ObserverFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		slog.Error("failed to open log file", "error", err)
+		os.Exit(1)
+	}
+
+	jsonHandler := slog.NewJSONHandler(file, nil)
 	logger := slog.New(jsonHandler)
 	slog.SetDefault(logger)
 }
@@ -32,8 +38,8 @@ func rootCommand() (rootCmd *cobra.Command) {
 			}
 		},
 	}
-	rootCmd.AddCommand(server.Server())
-	rootCmd.AddCommand(webhook.WebHook())
+	rootCmd.AddCommand(server.Cmd())
+	rootCmd.AddCommand(webhook.Cmd())
 
 	return
 }

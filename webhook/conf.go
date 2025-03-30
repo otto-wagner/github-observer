@@ -1,4 +1,4 @@
-package conf
+package webhook
 
 import (
 	"errors"
@@ -11,30 +11,27 @@ import (
 	"github.com/spf13/viper"
 )
 
-type IWebhookConfig interface {
-	Validate() error
-	Config() WebHookConfig
-}
-
-type webhookConfig struct {
-	webHookConfig WebHookConfig
-}
-
-type WebHookConfig struct {
-	HmacSecret   string          `json:"hmacSecret" validate:"required"`
-	Webhooks     []WebhookConfig `json:"webhooks" validate:"required,dive"`
-	Repositories []string        `json:"repositories" validate:"required,repositories"`
-}
-
-type WebhookConfig struct {
+type Webhook struct {
 	PayloadUrl  string   `json:"payloadUrl" validate:"required"`
 	ContentType string   `json:"contentType" validate:"required"`
 	InsecureSsl string   `json:"insecureSsl" validate:"required"`
 	Events      []string `json:"events" validate:"required"`
 }
 
-func InitWebhook() (IWebhookConfig, error) {
-	webhookConfig := webhookConfig{}
+type Config struct {
+	Repositories []string  `json:"repositories" validate:"required,repositories"`
+	HmacSecret   string    `json:"hmacSecret" validate:"required"`
+	GithubToken  string    `json:"githubToken" validate:"required"`
+	Webhooks     []Webhook `json:"webhook" validate:"required,dive"`
+}
+
+type IWebhookConfig interface {
+	Validate() error
+	Config() Config
+}
+
+func InitConfig() (IWebhookConfig, error) {
+	config := Config{}
 	configPath, err := filepath.Abs("./conf")
 	if err != nil {
 		slog.Error("failed to get absolute path", "error", err)
@@ -53,18 +50,18 @@ func InitWebhook() (IWebhookConfig, error) {
 			return nil, err
 		}
 	}
-	err = viper.Unmarshal(&webhookConfig.webHookConfig)
+	err = viper.Unmarshal(&config)
 	if err != nil {
 		return nil, err
 	}
-	return &webhookConfig, nil
+	return &config, nil
 }
 
-func (c webhookConfig) Config() WebHookConfig {
-	return c.webHookConfig
+func (c Config) Config() Config {
+	return c
 }
 
-func (c webhookConfig) Validate() (err error) {
+func (c Config) Validate() (err error) {
 	err = c.validation()
 	if err != nil {
 		for _, e := range err.(validator.ValidationErrors) {
@@ -80,11 +77,27 @@ func (c webhookConfig) Validate() (err error) {
 	return
 }
 
-func (c webhookConfig) validation() error {
+func (c Config) validation() error {
 	validate := validator.New()
 	err := validate.RegisterValidation("repositories", validateRepositories)
 	if err != nil {
 		return err
 	}
-	return validate.Struct(c.webHookConfig)
+	return validate.Struct(c)
+}
+
+func (c Config) validateRepositories(fl validator.FieldLevel) bool {
+	repositories := fl.Field().Interface().([]string)
+	for _, repository := range repositories {
+		split := strings.Split(repository, "/")
+		if len(split) != 2 {
+			return false
+		}
+
+		i := strings.Split(split[1], "@")
+		if len(i) != 2 {
+			return false
+		}
+	}
+	return true
 }

@@ -31,12 +31,13 @@ FROM alpine:3.21
 
 ARG USERNAME=observer
 ARG USER_UID=1000
-ARG GITHUB_TOKEN
-ENV GITHUB_TOKEN=$GITHUB_TOKEN
 
-RUN touch executor.log && chown $USER_UID:$USER_UID executor.log
-RUN touch watcher.log && chown $USER_UID:$USER_UID watcher.log
-RUN touch listener.log && chown $USER_UID:$USER_UID listener.log
+RUN mkdir -p /var/log && \
+    chown $USER_UID:$USER_UID /var/log && \
+    touch /var/log/observer.log && chown $USER_UID:$USER_UID /var/log/observer.log && \
+    touch /var/log/executor.log && chown $USER_UID:$USER_UID /var/log/executor.log && \
+    touch /var/log/watcher.log && chown $USER_UID:$USER_UID /var/log/watcher.log && \
+    touch /var/log/listener.log && chown $USER_UID:$USER_UID /var/log/listener.log
 
 COPY --from=build /app/certs /certs
 RUN chown -R $USER_UID:$USER_UID /certs

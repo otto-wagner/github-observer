@@ -13,13 +13,8 @@ test/unit:
 test/integration:
 	go test ./... -tags=integration -coverprofile=coverage.out
 
-mock: mock/setup mock/internal
-
-mock/setup:
-	go install github.com/vektra/mockery/v2@v2.43.2
-
-mock/internal:
-	cd ./internal && mockery --all
+mock:
+	cd internal && go generate ./...
 
 generate/certificate:
 	./scripts/generate-certificate.sh
@@ -29,6 +24,15 @@ build:
 
 build/run:
 	./app/github-observer server run
+
+webhook/create:
+	./app/github-observer webhook create
+
+webhook/list:
+	./app/github-observer webhook list
+
+webhook/delete:
+	./app/github-observer webhook delete
 
 run:
 	go run ./cmd/main.go server

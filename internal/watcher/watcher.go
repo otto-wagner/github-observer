@@ -1,3 +1,5 @@
+//go:generate mockery --all
+
 package watcher
 
 import (
@@ -19,6 +21,7 @@ type IWatcher interface {
 }
 
 type watcher struct {
+	ctx          context.Context
 	token        string
 	client       *github.Client
 	repositories []core.Repository
@@ -28,14 +31,14 @@ type watcher struct {
 }
 
 func NewWatcher(token string, client *github.Client, repositories []core.Repository, executors []executor.IExecutor, logger *slog.Logger) IWatcher {
-	return &watcher{token: token, client: client, repositories: repositories, executors: executors, workflows: make(map[core.Repository][]*github.Workflow), logger: logger}
+	return &watcher{ctx: context.Background(), token: token, client: client, repositories: repositories, executors: executors, workflows: make(map[core.Repository][]*github.Workflow), logger: logger}
 }
 
 func (w *watcher) Watch() {
 	scheduler := gocron.NewScheduler(time.UTC)
 
 	_, err := scheduler.Every(30).Minute().Do(func() {
-		w.client = github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: w.token})))
+		w.client = github.NewClient(oauth2.NewClient(w.ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: w.token})))
 	})
 	if err != nil {
 		w.logger.Error("renew client cron scheduler failed", "error", err)
@@ -72,7 +75,7 @@ func (w *watcher) Watch() {
 }
 
 func (w *watcher) CheckRateLimit() {
-	rateLimit, _, err := w.client.RateLimit.Get(context.Background())
+	rateLimit, _, err := w.client.RateLimit.Get(w.ctx)
 	if err != nil {
 		w.logger.Error("Failed to get rate limit", "error", err)
 		return
@@ -81,7 +84,7 @@ func (w *watcher) CheckRateLimit() {
 }
 
 func (w *watcher) PullRequests(repository core.Repository) {
-	pullRequests, _, err := w.client.PullRequests.List(context.Background(), repository.Owner, repository.Name, &github.PullRequestListOptions{})
+	pullRequests, _, err := w.client.PullRequests.List(w.ctx, repository.Owner, repository.Name, &github.PullRequestListOptions{})
 	if err != nil {
 		w.logger.Error("Failed to list pull requests", "error", err)
 		return
@@ -123,7 +126,7 @@ func (w *watcher) WorkflowRuns(repository core.Repository) {
 
 func (w *watcher) getLatestWorkflowRuns(repository core.Repository) (latestWorkflowRuns []*github.WorkflowRun, err error) {
 	for _, workflow := range w.workflows[repository] {
-		lastRun, _, err := w.client.Actions.ListWorkflowRunsByID(context.Background(), repository.Owner, repository.Name, workflow.GetID(),
+		lastRun, _, err := w.client.Actions.ListWorkflowRunsByID(w.ctx, repository.Owner, repository.Name, workflow.GetID(),
 			&github.ListWorkflowRunsOptions{ListOptions: github.ListOptions{PerPage: 1}, Branch: repository.Branch, Event: "push"},
 		)
 		if err != nil {

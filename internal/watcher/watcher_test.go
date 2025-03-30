@@ -6,10 +6,10 @@ import (
 	"bytes"
 	"github-observer/internal/core"
 	"github-observer/internal/executor"
-	"github-observer/internal/mocks"
+	"github-observer/internal/executor/mocks"
 	"github.com/google/go-github/v61/github"
-	"github.com/migueleliasweb/go-github-mock/src/mock"
-	m "github.com/stretchr/testify/mock"
+	gitMock "github.com/migueleliasweb/go-github-mock/src/mock"
+	"github.com/stretchr/testify/mock"
 	"log/slog"
 	"testing"
 )
@@ -23,12 +23,12 @@ func TestWatchPullRequests(t *testing.T) {
 		repository := core.Repository{Owner: "otto-wagner", Name: "github-observer"}
 
 		mockedExecutor := new(mocks.IExecutor)
-		mockedExecutor.On("PullRequests", repository, m.Anything)
+		mockedExecutor.On("PullRequests", repository, mock.Anything)
 		mockedSecondExecutor := new(mocks.IExecutor)
-		mockedSecondExecutor.On("PullRequests", repository, m.Anything)
+		mockedSecondExecutor.On("PullRequests", repository, mock.Anything)
 
-		mockedGithubClient := mock.NewMockedHTTPClient(
-			mock.WithRequestMatch(mock.GetReposPullsByOwnerByRepo,
+		mockedGithubClient := gitMock.NewMockedHTTPClient(
+			gitMock.WithRequestMatch(gitMock.GetReposPullsByOwnerByRepo,
 				[]github.PullRequest{{ID: github.Int64(1)}, {ID: github.Int64(2)}}),
 		)
 
@@ -53,14 +53,14 @@ func TestWatchWorkflows(t *testing.T) {
 		workflowRuns := []*github.WorkflowRun{{ID: github.Int64(1)}, {ID: github.Int64(2)}}
 
 		mockedExecutor := new(mocks.IExecutor)
-		mockedExecutor.On("LastWorkflows", repository, m.Anything)
+		mockedExecutor.On("LastWorkflows", repository, mock.Anything)
 		mockedSecondExecutor := new(mocks.IExecutor)
-		mockedSecondExecutor.On("LastWorkflows", repository, m.Anything)
+		mockedSecondExecutor.On("LastWorkflows", repository, mock.Anything)
 
-		mockedGithubClient := mock.NewMockedHTTPClient(
-			mock.WithRequestMatch(mock.GetReposActionsWorkflowsByOwnerByRepo,
+		mockedGithubClient := gitMock.NewMockedHTTPClient(
+			gitMock.WithRequestMatch(gitMock.GetReposActionsWorkflowsByOwnerByRepo,
 				github.Workflows{Workflows: workflows}),
-			mock.WithRequestMatch(mock.GetReposActionsWorkflowsRunsByOwnerByRepoByWorkflowId,
+			gitMock.WithRequestMatch(gitMock.GetReposActionsWorkflowsRunsByOwnerByRepoByWorkflowId,
 				github.WorkflowRuns{WorkflowRuns: workflowRuns}),
 		)
 

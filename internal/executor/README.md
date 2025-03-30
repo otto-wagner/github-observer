@@ -1,6 +1,6 @@
 # Executors
 Executors are the core of the system. They are responsible for executing the tasks that are assigned to them.
-To activate executors you need to set it in the config. (see [conf/readme.md](conf/README.md))
+To activate executors you need to set it in the config. (see [conf/readme.md](../../conf/README.md))
 
 ### Logging
 The logging executor logs the status of the observed events.

@@ -1,3 +1,5 @@
+//go:generate mockery --all
+
 package listener
 
 import (
@@ -39,6 +41,13 @@ func (l *listener) Workflow(c *gin.Context) {
 			repository = r
 		}
 	}
+
+	if repository.Name == "" {
+		l.logger.Error("Repository not found", "repository", event.GetRepo().GetName())
+		c.JSON(http.StatusNotFound, gin.H{"message": "repository not found"})
+		return
+	}
+
 	l.logger.Info("Workflow received",
 		"repository", repository.Name,
 		"workflow", event.GetWorkflowRun().Name,

@@ -28,9 +28,9 @@ app/
 # build
 bin/
 
-*.log
+var/log/*.log
 
-conf/local_*
+conf/local*.json
 ngrok/etc/local_*
 
 certs/server.cert
@@ -38,3 +38,8 @@ certs/server.key
 
 ngrok/etc/local.yml
 /charts/monitoring/
+
+loki/boltdb-cache/*
+loki/chunks/*
+loki/compactor/*
+loki/index/*

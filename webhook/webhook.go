@@ -2,7 +2,6 @@ package webhook
 
 import (
 	"context"
-	"github-observer/conf"
 	"github-observer/internal/core"
 	"github.com/google/go-github/v61/github"
 	"golang.org/x/oauth2"
@@ -11,29 +10,23 @@ import (
 	"os"
 )
 
-func Create(configuration conf.WebHookConfig) {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		slog.Error("missing GITHUB_TOKEN")
-		os.Exit(1)
-	}
-
-	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})))
-	for _, hook := range configuration.Webhooks {
+func Create(configuration Config) {
+	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: configuration.GithubToken})))
+	for _, webhook := range configuration.Webhooks {
 		for _, repo := range configuration.Repositories {
 			repository := core.ToRepository(repo)
 			hookResponse, response, err := client.Repositories.CreateHook(context.Background(), repository.Owner, repository.Name, &github.Hook{
 				Config: &github.HookConfig{
-					URL:         github.String(hook.PayloadUrl),
-					ContentType: github.String(hook.ContentType),
+					URL:         github.String(webhook.PayloadUrl),
+					ContentType: github.String(webhook.ContentType),
 					Secret:      github.String(configuration.HmacSecret),
-					InsecureSSL: github.String(hook.InsecureSsl),
+					InsecureSSL: github.String(webhook.InsecureSsl),
 				},
-				Events: hook.Events,
+				Events: webhook.Events,
 				Active: github.Bool(true),
 			})
 			if response.Response.StatusCode == http.StatusUnprocessableEntity {
-				slog.Info("hook already exists", "url", hook.PayloadUrl, "message", err)
+				slog.Info("webhook already exists", "url", webhook.PayloadUrl, "message", err)
 				continue
 			}
 			if err != nil {
@@ -47,14 +40,8 @@ func Create(configuration conf.WebHookConfig) {
 	return
 }
 
-func List(configuration conf.WebHookConfig) {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		slog.Error("missing GITHUB_TOKEN")
-		os.Exit(1)
-	}
-
-	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})))
+func List(configuration Config) {
+	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: configuration.GithubToken})))
 	for _, repo := range configuration.Repositories {
 		repository := core.ToRepository(repo)
 		hooks, _, err := client.Repositories.ListHooks(context.Background(), repository.Owner, repository.Name, nil)
@@ -70,14 +57,8 @@ func List(configuration conf.WebHookConfig) {
 	return
 }
 
-func Delete(configuration conf.WebHookConfig) {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		slog.Error("missing GITHUB_TOKEN")
-		os.Exit(1)
-	}
-
-	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})))
+func Delete(configuration Config) {
+	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: configuration.GithubToken})))
 	for _, repo := range configuration.Repositories {
 		repository := core.ToRepository(repo)
 		hooks, _, err := client.Repositories.ListHooks(context.Background(), repository.Owner, repository.Name, nil)

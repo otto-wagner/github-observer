@@ -3,4 +3,4 @@ mocks
 data
 *.md
 *_test.go
-github_observer.log
+*.log

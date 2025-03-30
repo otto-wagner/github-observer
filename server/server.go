@@ -2,13 +2,11 @@ package server
 
 import (
 	"context"
-	"github-observer/conf"
 	"github-observer/internal/core"
 	"github-observer/internal/executor"
-	"github-observer/internal/executor/Logging"
-	"github-observer/internal/executor/Prometheus"
+	log "github-observer/internal/executor/Logger"
+	prometheus "github-observer/internal/executor/Prometheus"
 	l "github-observer/internal/listener"
-	"github-observer/internal/router"
 	w "github-observer/internal/watcher"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
@@ -18,24 +16,24 @@ import (
 	"os"
 )
 
-func Run(configuration conf.CommonConfig) {
+func Run(configuration Config) {
 	repositories := GetRepositories(configuration)
 	executors := initExecutors(configuration)
 	listener := initListener(repositories, executors)
 
-	if configuration.App.Watcher {
-		initWatcher(repositories, executors)
+	if len(configuration.App.Watcher.GithubToken) > 0 {
+		initWatcher(repositories, executors, configuration)
 	}
 
-	gin.SetMode(configuration.App.Mode)
+	gin.SetMode(configuration.Mode)
 	engine := gin.New()
-	router.InitializeRoutes(engine, listener, configuration)
+	InitializeRoutes(engine, listener, configuration)
 
 	var err error
-	if configuration.Ssl.Activate {
-		err = engine.RunTLS(configuration.App.ListenAddress, configuration.Ssl.Cert, configuration.Ssl.Key)
+	if len(configuration.Ssl.Key) > 0 && len(configuration.Ssl.Cert) > 0 {
+		err = engine.RunTLS(configuration.Address, configuration.Ssl.Cert, configuration.Ssl.Key)
 	} else {
-		err = engine.Run(configuration.App.ListenAddress)
+		err = engine.Run(configuration.Address)
 	}
 	if err != nil {
 		slog.Error("failed to start server", "error", err)
@@ -45,39 +43,33 @@ func Run(configuration conf.CommonConfig) {
 }
 
 func initListener(repositories []core.Repository, executors []executor.IExecutor) l.IListener {
-	fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: conf.ListenerFile, MaxSize: 10, MaxAge: 1}, nil))
+	fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: ListenerFile, MaxSize: 10, MaxAge: 1}, nil))
 	return l.NewListener(repositories, executors, fileLogger)
 }
 
-func initExecutors(configuration conf.CommonConfig) (executors []executor.IExecutor) {
+func initExecutors(configuration Config) (executors []executor.IExecutor) {
 	for _, e := range configuration.App.Executors {
 		switch e {
-		case string(conf.Logging):
-			fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: conf.ExecutorFile, MaxSize: 10, MaxAge: 1}, nil))
-			executors = append(executors, Logging.NewExecutor(Logging.NewMemory(), fileLogger))
-		case string(conf.Prometheus):
-			executors = append(executors, Prometheus.NewExecutor())
+		case string(ExecutorLogger):
+			fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: ExecutorFile, MaxSize: 10, MaxAge: 1}, nil))
+			executors = append(executors, log.NewExecutor(log.NewMemory(), fileLogger))
+		case string(ExecutorPrometheus):
+			executors = append(executors, prometheus.NewExecutor())
 		}
 	}
 	return
 }
 
-func initWatcher(repositories []core.Repository, executors []executor.IExecutor) {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		slog.Error("missing GITHUB_TOKEN")
-		os.Exit(1)
-	}
-
-	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})))
-	fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: conf.WatcherFile, MaxSize: 10, MaxAge: 1}, nil))
-	w.NewWatcher(token, client, repositories, executors, fileLogger).Watch()
+func initWatcher(repositories []core.Repository, executors []executor.IExecutor, configuration Config) {
+	client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: configuration.App.Watcher.GithubToken})))
+	fileLogger := slog.New(slog.NewJSONHandler(&lumberjack.Logger{Filename: WatcherFile, MaxSize: 10, MaxAge: 1}, nil))
+	w.NewWatcher(configuration.App.Watcher.GithubToken, client, repositories, executors, fileLogger).Watch()
 	return
 }
 
-func GetRepositories(configuration conf.CommonConfig) []core.Repository {
+func GetRepositories(configuration Config) []core.Repository {
 	var repositories []core.Repository
-	for _, repo := range configuration.Repositories {
+	for _, repo := range configuration.App.Repositories {
 		repositories = append(repositories, core.ToRepository(repo))
 	}
 	return repositories

@@ -1,3 +1,5 @@
+//go:generate mockery --all
+
 package executor
 
 import (

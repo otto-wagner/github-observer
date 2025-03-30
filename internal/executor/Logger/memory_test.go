@@ -1,6 +1,6 @@
 //go:build all || unit
 
-package Logging
+package Logger
 
 import (
 	"github-observer/internal/core"

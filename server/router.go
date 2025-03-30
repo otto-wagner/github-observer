@@ -1,16 +1,14 @@
-package router
+package server
 
 import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"github-observer/conf"
 	"github-observer/internal/listener"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.uber.org/zap"
 	"io"
 	"log"
 	"net/http"
@@ -18,8 +16,8 @@ import (
 	"strings"
 )
 
-func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.CommonConfig) {
-	err := e.SetTrustedProxies(config.App.TrustedProxies)
+func InitializeRoutes(e *gin.Engine, l listener.IListener, config Config) {
+	err := e.SetTrustedProxies(config.TrustedProxies)
 	if err != nil {
 		return
 	}
@@ -31,8 +29,7 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.CommonCon
 	})
 
 	e.GET("/configuration", func(c *gin.Context) {
-		zap.S().Info("Health check")
-		config.HmacSecret = config.HmacSecret[:4] + strings.Repeat("*", len(config.HmacSecret)-4)
+		config.App.Listener.HmacSecret = config.App.Listener.HmacSecret[:4] + strings.Repeat("*", len(config.App.Listener.HmacSecret)-4)
 		c.JSON(http.StatusOK, gin.H{"configuration": config})
 	})
 
@@ -42,17 +39,25 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.CommonCon
 			e.GET("/metrics", gin.WrapH(promhttp.Handler()))
 			break
 		}
-		if executor == "logging" {
+		if executor == "logger" {
 			loggingExecutor = true
 		}
 	}
 
 	logsGroup := e.Group("/logs")
-	for _, l := range config.App.Logs {
+	logsGroup.GET("/observer", func(c *gin.Context) {
+		data, err := ReadLogData(ObserverFile)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.String(http.StatusOK, data)
+	})
+	for _, l := range config.App.Logger {
 		switch l {
 		case "listener":
 			logsGroup.GET("/listener", func(c *gin.Context) {
-				data, err := ReadLogData(conf.ListenerFile)
+				data, err := ReadLogData(ListenerFile)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -62,7 +67,7 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.CommonCon
 		case "executor":
 			if loggingExecutor {
 				logsGroup.GET("/executor", func(c *gin.Context) {
-					data, err := ReadLogData(conf.ExecutorFile)
+					data, err := ReadLogData(ExecutorFile)
 					if err != nil {
 						c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 						return
@@ -72,7 +77,7 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.CommonCon
 			}
 		case "watcher":
 			logsGroup.GET("/watcher", func(c *gin.Context) {
-				data, err := ReadLogData(conf.WatcherFile)
+				data, err := ReadLogData(WatcherFile)
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 					return
@@ -84,7 +89,7 @@ func InitializeRoutes(e *gin.Engine, l listener.IListener, config conf.CommonCon
 
 	if l != nil {
 		el := e.Group("/listen")
-		el.Use(hmacMiddleware([]byte(config.HmacSecret)))
+		el.Use(hmacMiddleware([]byte(config.App.Listener.HmacSecret)))
 		el.POST("/workflow", l.Workflow)
 		el.POST("/pullrequest", l.PullRequest)
 		el.POST("/pullrequest/review", l.PullRequestReview)

@@ -9,8 +9,7 @@ Github observer would like to observe github projects and forward the status.
 You can start the application with the necessary configurations in the `conf` directory with the following command:
 ```bash
     docker run -d --name github-observer \
-      -e GITHUB_TOKEN=${GITHUB_TOKEN} \
-      -v $(pwd)/conf/common.json:/conf/common.json \
+      -v "$(pwd)/conf/server.json:/conf/server.json" \
       -p 8443:8443 \
       ghcr.io/otto-wagner/github-observer:latest
 ```

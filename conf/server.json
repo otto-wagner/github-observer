@@ -1,0 +1,31 @@
+{
+  "mode": "debug",
+  "address": "0.0.0.0:8443",
+  "trustedProxies": null,
+  "ssl": {
+    "cert": null,
+    "key": null
+  },
+  "app": {
+    "repositories": [
+      "otto-wagner/github-observer@main"
+    ],
+    "executors": [
+      "logging",
+      "prometheus"
+    ],
+    "watcher": {
+      "enabled": true,
+      "githubToken": "GITHUB_TOKEN"
+    },
+    "listener": {
+      "enabled": true,
+      "hmacSecret": "your-secret"
+    },
+    "logger": [
+      "executor",
+      "watcher",
+      "listener"
+    ]
+  }
+}

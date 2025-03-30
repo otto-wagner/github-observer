@@ -1,17 +1,16 @@
 //go:build all || integration
 
-package router
+package server
 
 import (
 	"bytes"
 	"encoding/json"
-	"github-observer/conf"
 	"github-observer/internal/core"
 	"github-observer/internal/executor"
-	eLogging "github-observer/internal/executor/Logging"
-	ePrometheus "github-observer/internal/executor/Prometheus"
+	"github-observer/internal/executor/Logger"
+	"github-observer/internal/executor/Prometheus"
 	l "github-observer/internal/listener"
-	"github-observer/mocks"
+	"github-observer/server/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/v61/github"
 	"github.com/stretchr/testify/assert"
@@ -23,12 +22,12 @@ import (
 func TestRouterIntegration(t *testing.T) {
 	engine := gin.New()
 	buf := &bytes.Buffer{}
-	logger := slog.New(slog.NewTextHandler(buf, nil))
+	slog := slog.New(slog.NewTextHandler(buf, nil))
 	repositories := []core.Repository{{Owner: "otto-wagner", Name: "github-observer", Branch: "main"}}
-	executors := []executor.IExecutor{eLogging.NewExecutor(eLogging.NewMemory(), logger), ePrometheus.NewExecutor()}
-	listener := l.NewListener(repositories, executors, logger)
+	executors := []executor.IExecutor{Logger.NewExecutor(Logger.NewMemory(), slog), Prometheus.NewExecutor()}
+	listener := l.NewListener(repositories, executors, slog)
 
-	InitializeRoutes(engine, listener, conf.CommonConfig{HmacSecret: "your-secret"})
+	InitializeRoutes(engine, listener, Config{App: App{Listener: Listener{HmacSecret: "your-secret"}}})
 
 	t.Run("Should return ok", func(t *testing.T) {
 		// given
