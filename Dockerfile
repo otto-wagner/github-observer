@@ -27,7 +27,7 @@ RUN if [ "$ACTIVATE_SSL" = "true" ]; then \
 
 RUN go build -a -o observer cmd/main.go
 
-FROM alpine:3.21
+FROM alpine:3.22
 
 ARG USERNAME=observer
 ARG USER_UID=1000
