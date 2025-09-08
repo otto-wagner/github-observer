@@ -24,7 +24,7 @@ jobs:
       - name: GIT_CHECKOUT
         uses: actions/checkout@v5
       - name: SETUP_ENVIRONMENT
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.22.4'
       - name: RUN_TESTS
@@ -56,7 +56,7 @@ jobs:
 
       - name: IMAGE_RELEASE_VERSION
         id: image-release
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const version = "${{ github.event.inputs.release_version }}";
