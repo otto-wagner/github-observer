@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: GIT_CHECKOUT
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: SETUP_ENVIRONMENT
         uses: actions/setup-go@v6
         with:
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: GIT_CHECKOUT
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: DOCKER_SETUP_BUILDX
         uses: docker/setup-buildx-action@v3
