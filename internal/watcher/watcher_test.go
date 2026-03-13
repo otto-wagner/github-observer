@@ -3,37 +3,33 @@
 package watcher
 
 import (
-	"bytes"
-	"github-observer/internal/core"
-	"github-observer/internal/executor"
-	"github-observer/internal/executor/mocks"
-	"github.com/google/go-github/v61/github"
-	gitMock "github.com/migueleliasweb/go-github-mock/src/mock"
-	"github.com/stretchr/testify/mock"
-	"log/slog"
 	"testing"
+
+	"github.com/google/go-github/v73/github"
+	gitMock "github.com/migueleliasweb/go-github-mock/src/mock"
+	"github.com/otto-wagner/github-observer/internal/core"
+	"github.com/otto-wagner/github-observer/internal/executor"
+	"github.com/otto-wagner/github-observer/mocks"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestWatchPullRequests(t *testing.T) {
 	t.Run("Should list pull requests and send them to executors", func(t *testing.T) {
 		// given
-		buf := &bytes.Buffer{}
-		logger := slog.New(slog.NewTextHandler(buf, nil))
-
 		repository := core.Repository{Owner: "otto-wagner", Name: "github-observer"}
 
-		mockedExecutor := new(mocks.IExecutor)
+		mockedExecutor := new(mocks.MockIExecutor)
 		mockedExecutor.On("PullRequests", repository, mock.Anything)
-		mockedSecondExecutor := new(mocks.IExecutor)
+		mockedSecondExecutor := new(mocks.MockIExecutor)
 		mockedSecondExecutor.On("PullRequests", repository, mock.Anything)
 
-		mockedGithubClient := gitMock.NewMockedHTTPClient(
+		mockedHTTPClient := gitMock.NewMockedHTTPClient(
 			gitMock.WithRequestMatch(gitMock.GetReposPullsByOwnerByRepo,
-				[]github.PullRequest{{ID: github.Int64(1)}, {ID: github.Int64(2)}}),
+				[]github.PullRequest{{ID: github.Ptr(int64(1))}, {ID: github.Ptr(int64(2))}}),
 		)
 
 		// when
-		w := NewWatcher("token", github.NewClient(mockedGithubClient), []core.Repository{repository}, []executor.IExecutor{mockedExecutor, mockedSecondExecutor}, logger)
+		w := NewWatcher(github.NewClient(mockedHTTPClient), []core.Repository{repository}, []executor.IExecutor{mockedExecutor, mockedSecondExecutor})
 		w.PullRequests(repository)
 
 		// then
@@ -45,16 +41,14 @@ func TestWatchPullRequests(t *testing.T) {
 func TestWatchWorkflows(t *testing.T) {
 	t.Run("Should get latest workflow runs and send them to executors", func(t *testing.T) {
 		// given
-		buf := &bytes.Buffer{}
-		logger := slog.New(slog.NewTextHandler(buf, nil))
 		repository := core.Repository{Owner: "otto-wagner", Name: "github-observer"}
 
-		workflows := []*github.Workflow{{ID: github.Int64(1), Name: github.String("CodeQL")}}
-		workflowRuns := []*github.WorkflowRun{{ID: github.Int64(1)}, {ID: github.Int64(2)}}
+		workflows := []*github.Workflow{{ID: github.Ptr(int64(1)), Name: github.Ptr("CodeQL")}}
+		workflowRuns := []*github.WorkflowRun{{ID: github.Ptr(int64(1))}, {ID: github.Ptr(int64(2))}}
 
-		mockedExecutor := new(mocks.IExecutor)
+		mockedExecutor := new(mocks.MockIExecutor)
 		mockedExecutor.On("LastWorkflows", repository, mock.Anything)
-		mockedSecondExecutor := new(mocks.IExecutor)
+		mockedSecondExecutor := new(mocks.MockIExecutor)
 		mockedSecondExecutor.On("LastWorkflows", repository, mock.Anything)
 
 		mockedGithubClient := gitMock.NewMockedHTTPClient(
@@ -65,7 +59,7 @@ func TestWatchWorkflows(t *testing.T) {
 		)
 
 		// when
-		w := NewWatcher("token", github.NewClient(mockedGithubClient), []core.Repository{repository}, []executor.IExecutor{mockedExecutor, mockedSecondExecutor}, logger)
+		w := NewWatcher(github.NewClient(mockedGithubClient), []core.Repository{repository}, []executor.IExecutor{mockedExecutor, mockedSecondExecutor})
 		w.WorkflowRuns(repository)
 
 		// then

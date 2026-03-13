@@ -4,10 +4,6 @@ The listener listens for Actions, Pull Requests and Pull Request review webhooks
 ## Github Webhook
 A webhook is a mechanism that allows an external service to be notified when a specific event occurs.
 
-### Cobra cli
-A webhook cli is implemented to create, list and delete webhooks for a GitHub repository.
-see [webhook/readme.md](../../webhook/README.md)).
-
 ### Manually
 You can also create a webhook manually in the GitHub repository.
 - Go to your repository
@@ -30,17 +26,13 @@ You can also create a webhook manually in the GitHub repository.
         - Let me select individual events
         - Select Pull request reviews
 
-## ngrok domain
-For local development you can use ngrok to expose your local Endpoints to the internet.
-**Ngrok is only free for non-commercial and pre-release versions (https://ngrok.com/pricing)**
+## devtunnel
 
-+ Register at https://ngrok.com/
-+ Installation: https://ngrok.com/docs/getting-started/
-+ Set environment variable NGROK_AUTHTOKEN= (https://dashboard.ngrok.com/get-started/your-authtoken)
-+ Start ngrok with docker-compose
-    * comment ngrok in docker-compose
-    * you can use ngrok.yml to set your domain (https://dashboard.ngrok.com/cloud-edge/domains)
-* Start ngrok with shell command
-  ```shell
-  ngrok http --domain={domain} 8443 --verify-webhook=github --verify-webhook-secret=mySecret
-  ```
+For local development you can use devtunnel to expose your local Endpoints to the internet.
+```shell
+devtunnel user login -g # login via github
+```
+```shell
+devtunnel host -p 8443 --allow-anonymous --expiration 4h --protocol https
+# open a tunnel to your localhost port 8443. you will get a public URL
+```

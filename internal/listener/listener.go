@@ -1,14 +1,13 @@
-//go:generate mockery --all
-
 package listener
 
 import (
-	"github-observer/internal/core"
-	"github-observer/internal/executor"
-	"github.com/gin-gonic/gin"
-	"github.com/google/go-github/v61/github"
 	"log/slog"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/go-github/v73/github"
+	"github.com/otto-wagner/github-observer/internal/core"
+	"github.com/otto-wagner/github-observer/internal/executor"
 )
 
 type IListener interface {
@@ -20,17 +19,16 @@ type IListener interface {
 type listener struct {
 	repositories []core.Repository
 	executors    []executor.IExecutor
-	logger       *slog.Logger
 }
 
-func NewListener(repositories []core.Repository, executors []executor.IExecutor, logger *slog.Logger) IListener {
-	return &listener{repositories, executors, logger}
+func NewListener(repositories []core.Repository, executors []executor.IExecutor) IListener {
+	return &listener{repositories, executors}
 }
 
 func (l *listener) Workflow(c *gin.Context) {
 	var event github.WorkflowRunEvent
 	if err := c.BindJSON(&event); err != nil {
-		l.logger.Error("Failed to bind EventWorkflow", "error", err)
+		slog.Error("Failed to bind EventWorkflow", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 		return
 	}
@@ -43,12 +41,12 @@ func (l *listener) Workflow(c *gin.Context) {
 	}
 
 	if repository.Name == "" {
-		l.logger.Error("Repository not found", "repository", event.GetRepo().GetName())
+		slog.Error("Repository not found", "repository", event.GetRepo().GetName())
 		c.JSON(http.StatusNotFound, gin.H{"message": "repository not found"})
 		return
 	}
 
-	l.logger.Info("Workflow received",
+	slog.Info("Workflow received",
 		"repository", repository.Name,
 		"workflow", event.GetWorkflowRun().Name,
 		"url", event.GetWorkflowRun().GetHTMLURL(),
@@ -70,11 +68,11 @@ func (l *listener) Workflow(c *gin.Context) {
 func (l *listener) PullRequest(c *gin.Context) {
 	var event github.PullRequestEvent
 	if err := c.BindJSON(&event); err != nil {
-		l.logger.Error("Failed to bind EventPullRequest", "error", err)
+		slog.Error("Failed to bind EventPullRequest", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 		return
 	}
-	l.logger.Info("Pullrequest received", "repository", event.GetRepo().GetName(), "pullrequest", event.GetPullRequest().GetTitle(), "url", event.GetPullRequest().GetHTMLURL())
+	slog.Info("Pullrequest received", "repository", event.GetRepo().GetName(), "pullrequest", event.GetPullRequest().GetTitle(), "url", event.GetPullRequest().GetHTMLURL())
 
 	for _, e := range l.executors {
 		e.EventPullRequest(event)
@@ -85,11 +83,11 @@ func (l *listener) PullRequest(c *gin.Context) {
 func (l *listener) PullRequestReview(c *gin.Context) {
 	var event github.PullRequestReviewEvent
 	if err := c.BindJSON(&event); err != nil {
-		l.logger.Error("Failed to bind EventPullRequestReview", "error", err)
+		slog.Error("Failed to bind EventPullRequestReview", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid json"})
 		return
 	}
-	l.logger.Info("Pullrequest review received", "repository", event.GetRepo().GetName(), "pullrequest", event.GetPullRequest().GetTitle(), "url", event.GetPullRequest().GetHTMLURL())
+	slog.Info("Pullrequest review received", "repository", event.GetRepo().GetName(), "pullrequest", event.GetPullRequest().GetTitle(), "url", event.GetPullRequest().GetHTMLURL())
 
 	for _, e := range l.executors {
 		e.EventPullRequestReview(event)

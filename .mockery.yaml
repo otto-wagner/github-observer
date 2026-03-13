@@ -1,0 +1,22 @@
+# mockery v3 configuration file
+dir: mocks
+
+packages:
+  github.com/otto-wagner/github-observer/internal/executor:
+    config:
+      pkgname: mocks
+      filename: "{{.InterfaceName}}.go"
+    interfaces:
+      IExecutor: {}
+  github.com/otto-wagner/github-observer/internal/listener:
+    config:
+      pkgname: mocks
+      filename: "{{.InterfaceName}}.go"
+    interfaces:
+      IListener: {}
+  github.com/otto-wagner/github-observer/internal/watcher:
+    config:
+      pkgname: mocks
+      filename: "{{.InterfaceName}}.go"
+    interfaces:
+      IWatcher: {}

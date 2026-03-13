@@ -1,5 +1,5 @@
 .idea
-
+.env
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
@@ -28,15 +28,9 @@ app/
 # build
 bin/
 
-var/log/*.log
-
-conf/local*.json
-ngrok/etc/local_*
-
 certs/server.cert
 certs/server.key
 
-ngrok/etc/local.yml
 /charts/monitoring/
 
 loki/boltdb-cache/*

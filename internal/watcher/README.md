@@ -20,7 +20,7 @@ An important part of this process is the querying and processing of workflow run
         - `GET /repos/{owner}/{repo}/actions/runs`: Lists all workflow runs of a repository.
 3. Finally, the determined workflow runs are forwarded to the executor.
 
-## Github Rate Limit
+## GitHub Rate Limit
 The GitHub API has a rate limit. This means that only a certain number of requests can be made within a certain period of time.
 If the rate limit is exceeded, the API will return an error message.
 To avoid this, the watcher process is implemented in such a way that it waits for a certain period of time before making the next request.

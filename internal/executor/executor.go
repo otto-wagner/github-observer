@@ -1,13 +1,14 @@
-//go:generate mockery --all
-
 package executor
 
 import (
-	"github-observer/internal/core"
-	"github.com/google/go-github/v61/github"
+	"github.com/otto-wagner/github-observer/internal/core"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/go-github/v73/github"
 )
 
 type IExecutor interface {
+	Handler() gin.HandlerFunc
 	EventPullRequest(github.PullRequestEvent)
 	EventPullRequestReview(github.PullRequestReviewEvent)
 	EventWorkflowRun(github.WorkflowRunEvent)
