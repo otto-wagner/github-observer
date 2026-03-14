@@ -3,8 +3,10 @@ package watcher
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-co-op/gocron"
 	"github.com/google/go-github/v73/github"
 	"github.com/otto-wagner/github-observer/internal/core"
@@ -13,6 +15,7 @@ import (
 
 type IWatcher interface {
 	Start()
+	Run(*gin.Context)
 	PullRequests(core.Repository)
 	WorkflowRuns(core.Repository)
 }
@@ -66,6 +69,16 @@ func (w *watcher) Start() {
 		}
 	}
 	scheduler.StartAsync()
+}
+
+func (w *watcher) Run(c *gin.Context) {
+	for _, repository := range w.repositories {
+		r := repository
+		w.PullRequests(r)
+		w.updateExistingWorkflows(r)
+		w.WorkflowRuns(r)
+	}
+	c.JSON(http.StatusAccepted, gin.H{"message": "Watcher run started"})
 }
 
 func (w *watcher) PullRequests(repository core.Repository) {

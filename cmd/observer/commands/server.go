@@ -69,7 +69,10 @@ var (
 					Key:    "watcher.github_token",
 					Expiry: 5 * time.Minute,
 				})))
-				watcher.NewWatcher(client, repositories, executors).Start()
+				watcher := watcher.NewWatcher(client, repositories, executors)
+				watcher.Start()
+				wa := root.Group("/watcher")
+				wa.GET("/run", watcher.Run)
 			}
 			err := root.Run(conf.Address)
 			if err != nil {
