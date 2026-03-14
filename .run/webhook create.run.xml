@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="webhook create" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="github-observer" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="webhook create -f ./internal/webhook/example.json " />
+    <kind value="PACKAGE" />
+    <package value="github.com/otto-wagner/github-observer/cmd/observer" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/observer/main.go" />
+    <method v="2" />
+  </configuration>
+</component>

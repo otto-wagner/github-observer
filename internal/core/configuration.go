@@ -12,12 +12,8 @@ const ExecutorMetrics Executor = "metrics"
 type Executor string
 
 type Config struct {
-	Mode    string `mapstructure:"mode" validate:"required,oneof=release debug test"`
-	Address string `mapstructure:"address" validate:"required"`
-	App     App    `mapstructure:"app" validate:"required"`
-}
-
-type App struct {
+	Mode         string   `mapstructure:"mode" validate:"required,oneof=release debug test"`
+	Address      string   `mapstructure:"address" validate:"required"`
 	Repositories []string `mapstructure:"repositories" validate:"required,repositories"`
 	Executors    []string `mapstructure:"executors" validate:"required,executors"`
 	Watcher      Watcher  `mapstructure:"watcher" validate:"watcher"`
@@ -26,12 +22,12 @@ type App struct {
 
 type Watcher struct {
 	Enabled     bool   `mapstructure:"enabled"`
-	GithubToken string `mapstructure:"githubToken"`
+	GithubToken string `mapstructure:"github_token"`
 }
 
 type Listener struct {
 	Enabled    bool   `mapstructure:"enabled"`
-	HmacSecret string `mapstructure:"hmac_secret" mapstructure:"hmac_secret"`
+	HmacSecret string `mapstructure:"hmac_secret"`
 }
 
 type Repo struct {

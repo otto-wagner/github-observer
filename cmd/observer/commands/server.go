@@ -41,12 +41,12 @@ var (
 			root.GET("/health")
 
 			var repositories []core.Repository
-			for _, repo := range conf.App.Repositories {
+			for _, repo := range conf.Repositories {
 				repositories = append(repositories, core.ToRepository(repo))
 			}
 
 			var executors []executor.IExecutor
-			for _, e := range conf.App.Executors {
+			for _, e := range conf.Executors {
 				switch e {
 				case string(core.ExecutorMetrics):
 					executor := prometheus.NewExecutor()
@@ -55,23 +55,22 @@ var (
 				}
 			}
 
-			if conf.App.Listener.Enabled {
+			if conf.Listener.Enabled {
 				listener := listener.NewListener(repositories, executors)
 				el := root.Group("/listen")
-				el.Use(utils.Hmac([]byte(conf.App.Listener.HmacSecret)))
+				el.Use(utils.Hmac([]byte(conf.Listener.HmacSecret)))
 				el.POST("/workflow", listener.Workflow)
 				el.POST("/pullrequest", listener.PullRequest)
 				el.POST("/pullrequest/review", listener.PullRequestReview)
 			}
 
-			if conf.App.Watcher.Enabled {
+			if conf.Watcher.Enabled {
 				client := github.NewClient(oauth2.NewClient(context.Background(), oauth2.ReuseTokenSource(nil, &core.Token{
-					Key:    "app.watcher.githubToken",
+					Key:    "watcher.github_token",
 					Expiry: 5 * time.Minute,
 				})))
 				watcher.NewWatcher(client, repositories, executors).Start()
 			}
-
 			err := root.Run(conf.Address)
 			if err != nil {
 				slog.Error("failed to start server")
@@ -90,18 +89,18 @@ func init() {
 	cmdServer.PersistentFlags().StringVarP(&conf.Address, "address", "a", conf.Address, "Address of the http api endpoint")
 
 	// => executors
-	cmdServer.PersistentFlags().StringSliceVarP(&conf.App.Executors, "app.executors", "e", conf.App.Executors, "Executors to use (logging, prometheus)")
+	cmdServer.PersistentFlags().StringSliceVarP(&conf.Executors, "executors", "e", conf.Executors, "Executors to use (logging, prometheus)")
 
 	// => watcher
-	cmdServer.PersistentFlags().BoolVarP(&conf.App.Watcher.Enabled, "app.watcher.enabled", "w", conf.App.Watcher.Enabled, "enable watcher")
-	cmdServer.PersistentFlags().StringVarP(&conf.App.Watcher.GithubToken, "app.watcher.githubToken", "g", conf.App.Watcher.GithubToken, "github token")
+	cmdServer.PersistentFlags().BoolVarP(&conf.Watcher.Enabled, "watcher.enabled", "w", conf.Watcher.Enabled, "enable watcher")
+	cmdServer.PersistentFlags().StringVarP(&conf.Watcher.GithubToken, "watcher.github_token", "g", conf.Watcher.GithubToken, "github token")
 
 	// => listener
-	cmdServer.PersistentFlags().BoolVarP(&conf.App.Listener.Enabled, "app.listener.enabled", "l", conf.App.Listener.Enabled, "enable listener")
-	cmdServer.PersistentFlags().StringVarP(&conf.App.Listener.HmacSecret, "app.listener.hmac_secret", "s", conf.App.Listener.HmacSecret, "hmac secret")
+	cmdServer.PersistentFlags().BoolVarP(&conf.Listener.Enabled, "listener.enabled", "l", conf.Listener.Enabled, "enable listener")
+	cmdServer.PersistentFlags().StringVarP(&conf.Listener.HmacSecret, "listener.hmac_secret", "s", conf.Listener.HmacSecret, "hmac secret")
 
 	// => repositories
-	cmdServer.PersistentFlags().StringSliceVarP(&conf.App.Repositories, "app.repositories", "r", conf.App.Repositories, "owner/repo@branch")
+	cmdServer.PersistentFlags().StringSliceVarP(&conf.Repositories, "repositories", "r", conf.Repositories, "owner/repo@branch")
 
 	err := viper.BindPFlags(cmdServer.PersistentFlags())
 	if err != nil {
