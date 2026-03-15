@@ -22,15 +22,15 @@ type executor struct {
 func NewExecutor() e.IExecutor {
 	registry := prometheus.NewRegistry()
 	eventPullRequest := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "event_pull_request", Help: "Number of pull requests processed"},
+		Name: "observer_event_pull_request", Help: "Number of pull requests processed"},
 		[]string{"action", "pull_request_title", "pull_request_state", "repository_full_name"})
 
 	workflowRun := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "latest_workflows", Help: "Failed workflow runs"},
+		Name: "observer_latest_workflows", Help: "Failed workflow runs"},
 		[]string{"repository_full_name", "workflow_name", "workflow_run_id", "run_number", "state", "conclusion"})
 
 	pullRequest := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "pull_request_sum", Help: "Number of pull requests"},
+		Name: "observer_pull_request_sum", Help: "Number of pull requests"},
 		[]string{"repository_full_name"})
 
 	registry.MustRegister(eventPullRequest, workflowRun, pullRequest)
