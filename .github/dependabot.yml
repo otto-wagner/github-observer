@@ -28,7 +28,8 @@ updates:
           - "*"
 
   - package-ecosystem: docker
-    directory: "/"
+    directories:
+      - "/deployments/*"
     schedule:
       interval: "weekly"
       day: "monday"
