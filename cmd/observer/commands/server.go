@@ -117,6 +117,12 @@ func init() {
 		os.Exit(1)
 	}
 
+	logLevel := slog.LevelDebug
+	if conf.Mode == "release" {
+		logLevel = slog.LevelWarn
+	}
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})))
+
 	if err := conf.Validate(); err != nil {
 		os.Exit(1)
 	}
