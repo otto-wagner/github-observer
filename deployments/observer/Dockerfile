@@ -13,7 +13,7 @@ RUN go mod download
 COPY . .
 RUN go build -trimpath -ldflags="-w -s" -o observer ./cmd/observer
 
-FROM alpine:3.23
+FROM alpine:3.24
 
 WORKDIR /observer
 COPY --from=builder /build/observer ./observer
