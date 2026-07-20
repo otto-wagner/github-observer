@@ -24,7 +24,7 @@ jobs:
       - name: GIT_CHECKOUT
         uses: actions/checkout@v7
       - name: SETUP_ENVIRONMENT
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: '1.22.4'
       - name: RUN_TESTS
